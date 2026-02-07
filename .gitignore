@@ -1,0 +1,5 @@
+# Engineering docs (local working files, not shipped)
+.eng/
+
+# Archived v1 agents
+v1/
