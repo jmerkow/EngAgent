@@ -18,7 +18,7 @@ A portable engineering agent for VS Code. Provides `@eng` agent, `/eng-*` prompt
 
 ## Install
 
-Clone this repo, then run the install script for your OS. The script copies agents, prompts, and skills into your VS Code User profile directory where they're auto-discovered in every workspace.
+Clone this repo, then run the install script for your OS. The script copies agents, prompts, and skills into `~/.copilot/engagent/` and registers that location in VS Code's settings so everything is auto-discovered in every workspace.
 
 ### Windows (PowerShell)
 
@@ -30,15 +30,19 @@ cd EngAgent
 
 ### macOS / Linux
 
+> **⚠️ Untested.** The bash install script has not been verified on macOS or Linux yet. It should work, but please report issues if you run into problems.
+
 ```bash
 git clone https://github.com/jmerkow/EngAgent.git
 cd EngAgent
 ./install.sh
 ```
 
-> **Note:** Run the install script on your **local machine** (where VS Code is installed), not on a remote SSH host. VS Code discovers agents/prompts from the client-side User profile, so they'll be available on all remotes automatically.
+> **Note:** The bash script requires `jq` for VS Code settings registration. If `jq` isn't installed, files are still copied but you'll need to add the settings manually (the script prints the required entries).
 
-The install scripts will **overwrite** existing files with the same name (e.g., if you already have an `eng-plan.prompt.md` in your UserData, it gets replaced). Files that aren't in this repo are left untouched — your personal prompts and agents are safe.
+> **Note:** Run the install script on your **local/client machine** — the one where VS Code itself is running. If you work over Remote SSH, Dev Containers, or WSL, install on the **client side only**, not on the remote host. VS Code reads agents, prompts, skills, and settings from the client's user profile, so they'll be available across all remote sessions automatically.
+
+The install scripts are **idempotent** — re-running copies the latest files and only touches settings entries that aren't already present.
 
 ## Update
 
@@ -49,15 +53,17 @@ git pull
 
 ## How It Works
 
-VS Code auto-discovers `.agent.md`, `.prompt.md`, and `SKILL.md` files from its User profile directory:
+The install script copies `.github/{agents,prompts,skills}/` from this repo into `~/.copilot/engagent/` and registers three VS Code settings:
 
-| OS | Path |
-|---|---|
-| Windows | `%APPDATA%\Code\User\{agents,prompts,skills}\` |
-| macOS | `~/Library/Application Support/Code/User/{agents,prompts,skills}/` |
-| Linux | `~/.config/Code/User/{agents,prompts,skills}/` |
+```jsonc
+{
+    "chat.agentFilesLocations":  { "~/.copilot/engagent/agents": true },
+    "chat.promptFilesLocations": { "~/.copilot/engagent/prompts": true },
+    "chat.agentSkillsLocations": { "~/.copilot/engagent/skills": true }
+}
+```
 
-The install script copies from `.github/{agents,prompts,skills}/` in this repo into the appropriate location. No VS Code settings changes needed.
+This keeps EngAgent files self-contained in one directory, separate from your personal prompts and agents. VS Code discovers the files via these custom location settings.
 
 ## Usage
 

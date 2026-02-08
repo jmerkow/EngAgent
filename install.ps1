@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Installs EngAgent agents, prompts, and skills into VS Code UserData.
+    Installs EngAgent into ~/.copilot/engagent and registers paths in VS Code.
 
 .DESCRIPTION
-    Copies .github/{agents,prompts,skills} from this repo into your VS Code
-    User profile directory. Files placed there are auto-discovered by VS Code
-    in every workspace, including remote SSH sessions.
+    Copies .github/{agents,prompts,skills} into ~/.copilot/engagent/ and adds
+    the paths to VS Code's chat.agentFilesLocations, chat.promptFilesLocations,
+    and chat.agentSkillsLocations settings.
 
 .NOTES
     Run this from the repo root: .\install.ps1
@@ -17,8 +17,12 @@ $ErrorActionPreference = "Stop"
 # --- Locate repo root (where this script lives) ---
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-# --- Locate VS Code UserData directory ---
+# --- Destination: ~/.copilot/engagent ---
+$EngAgentDir = Join-Path $HOME ".copilot" "engagent"
+
+# --- VS Code settings.json ---
 $CodeUserDir = Join-Path $env:APPDATA "Code" "User"
+$SettingsFile = Join-Path $CodeUserDir "settings.json"
 
 if (-not (Test-Path $CodeUserDir)) {
     Write-Error "VS Code UserData not found at: $CodeUserDir"
@@ -26,20 +30,13 @@ if (-not (Test-Path $CodeUserDir)) {
     exit 1
 }
 
-# --- Source directories in the repo ---
-$Sources = @{
-    agents = Join-Path $RepoRoot ".github" "agents"
-    prompts = Join-Path $RepoRoot ".github" "prompts"
-    skills = Join-Path $RepoRoot ".github" "skills"
-}
-
-# --- Copy each category ---
+# --- Copy .github/{agents,prompts,skills} → ~/.copilot/engagent/ ---
 $Copied = 0
 $Skipped = 0
 
-foreach ($Category in $Sources.Keys) {
-    $SrcDir = $Sources[$Category]
-    $DestDir = Join-Path $CodeUserDir $Category
+foreach ($Category in @("agents", "prompts", "skills")) {
+    $SrcDir = Join-Path $RepoRoot ".github" $Category
+    $DestDir = Join-Path $EngAgentDir $Category
 
     if (-not (Test-Path $SrcDir)) {
         Write-Warning "Source not found, skipping: $SrcDir"
@@ -47,13 +44,11 @@ foreach ($Category in $Sources.Keys) {
         continue
     }
 
-    # Create destination if it doesn't exist
     if (-not (Test-Path $DestDir)) {
         New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
         Write-Host "  Created: $DestDir" -ForegroundColor DarkGray
     }
 
-    # Copy files (recursive for skills which have subdirectories)
     $Items = Get-ChildItem -Path $SrcDir -Recurse
     foreach ($Item in $Items) {
         $RelPath = $Item.FullName.Substring($SrcDir.Length + 1)
@@ -72,7 +67,56 @@ foreach ($Category in $Sources.Keys) {
 }
 
 Write-Host ""
-Write-Host "Done. Copied $Copied file(s) to: $CodeUserDir" -ForegroundColor Cyan
+Write-Host "Copied $Copied file(s) to: $EngAgentDir" -ForegroundColor Cyan
+
+# --- Register paths in VS Code settings.json ---
+# VS Code requires ~/ prefix, not absolute paths
+$LocationSettings = [ordered]@{
+    "chat.agentFilesLocations"  = "~/.copilot/engagent/agents"
+    "chat.promptFilesLocations" = "~/.copilot/engagent/prompts"
+    "chat.agentSkillsLocations" = "~/.copilot/engagent/skills"
+}
+
+if (Test-Path $SettingsFile) {
+    $Settings = Get-Content $SettingsFile -Raw | ConvertFrom-Json
+} else {
+    $Settings = [PSCustomObject]@{}
+}
+
+$SettingsChanged = $false
+
+foreach ($Key in $LocationSettings.Keys) {
+    $PathToAdd = $LocationSettings[$Key]
+    $Current = $Settings.PSObject.Properties[$Key]
+
+    if ($null -eq $Current) {
+        # Setting expects { "path": true } object format
+        $Obj = [PSCustomObject]@{ $PathToAdd = $true }
+        $Settings | Add-Member -NotePropertyName $Key -NotePropertyValue $Obj
+        $SettingsChanged = $true
+        Write-Host "  Added setting: $Key" -ForegroundColor Green
+    } else {
+        # Check if our path is already a key in the object
+        $ExistingProp = $Current.Value.PSObject.Properties[$PathToAdd]
+        if ($null -eq $ExistingProp) {
+            $Current.Value | Add-Member -NotePropertyName $PathToAdd -NotePropertyValue $true
+            $SettingsChanged = $true
+            Write-Host "  Updated setting: $Key" -ForegroundColor Green
+        } else {
+            Write-Host "  Already set: $Key" -ForegroundColor DarkGray
+        }
+    }
+}
+
+if ($SettingsChanged) {
+    $Settings | ConvertTo-Json -Depth 32 | Set-Content $SettingsFile -Encoding utf8NoBOM
+    Write-Host ""
+    Write-Host "Updated VS Code settings: $SettingsFile" -ForegroundColor Cyan
+} else {
+    Write-Host ""
+    Write-Host "VS Code settings already up to date." -ForegroundColor DarkGray
+}
+
 if ($Skipped -gt 0) {
     Write-Host "Skipped $Skipped missing source(s)." -ForegroundColor Yellow
 }
