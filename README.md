@@ -1,57 +1,56 @@
 # EngAgent
 
-A portable engineering agent system for GitHub Copilot in VS Code. It gives your AI agent structured memory, retro-driven self-improvement, and consistent behavior across every project you work on.
+A portable agent system for GitHub Copilot in VS Code. Gives your AI agent a place to write things down, learn from mistakes, and pick up where it left off.
 
-The core idea: AI agents are more effective when they have a place to write things down. EngAgent provides that place (`.eng/` directories) along with agents, prompts, and skills that know how to use it. Objectives track what you're doing and why. Findings capture what you learned. Retros capture what went wrong. Each session picks up where the last one left off.
-
-Built for solo practitioners who work with AI agents daily and want the agent to get better over time — not just within a session, but across sessions and projects.
+EngAgent creates `.eng/` directories in your projects, plain markdown files where the agent tracks objectives, captures findings, and logs what went wrong. It also includes agents, prompts, and skills that know how to use those files. The idea is that each session builds on the last one instead of starting from scratch.
 
 ## Why EngAgent?
 
-We studied the major agent configuration projects — [shariqriazz/global-project-agents-md](https://github.com/shariqriazz/global-project-agents-md), [dhar174/custom_github_copilot_agent_builder](https://github.com/dhar174/custom_github_copilot_agent_builder), [github/awesome-copilot](https://github.com/github/awesome-copilot), and [anthropics/anthropic-cookbook](https://github.com/anthropics/anthropic-cookbook) — and incorporated their best ideas. But none of them solved the problem we kept hitting: **agents don't learn from their mistakes.**
+This project grew out of my own experience working with AI agents daily. I'd been collecting learnings, tweaking prompts, and building up informal patterns over time — and eventually decided to pull it all together into something more structured and reusable.
 
-| Project | Strength | Gap |
-|---|---|---|
-| shariqriazz | Excellent behavioral rules, auto-detection scaffolding | No session memory, no retro loop |
-| dhar174 | Rich context layers (memory, decisions, specs) | Complex 5-phase pipeline, team-oriented |
-| awesome-copilot | Huge pattern catalog, DAG workflows, hooks | Reference collection, not an opinionated system |
-| anthropic-cookbook | Research subagent patterns, context compaction | API-level recipes, not workspace tooling |
+The guiding principle: **control and transparency**. I wanted to understand exactly what my agent system was doing, not have some massive project running a bunch of things behind the scenes. At the same time, I wanted it to actually be useful, to help me keep track of work across sessions and projects. I think this is a good starting point for anyone who wants structure around AI-assisted coding without handing the reins over completely.
 
-EngAgent cherry-picks the best patterns (confidence scoring, autonomy zones, constraint-over-capability, progressive disclosure) and adds what's missing: **a retro-driven feedback loop**. After each session, you run `/eng-retro` to capture what went wrong. Periodically, `/eng-retro-analysis` aggregates those retros and surfaces recurring patterns. You then use those patterns to refine the agent's behavioral rules. It's a manual loop — you decide what changes to make — but it's structured enough that improvements compound over time.
+I didn't know about the bigger projects in this space until after I'd already started. Early versions of EngAgent grew organically, and then I used the `@eng` agent itself to research projects like [Get Shit Done](https://github.com/gsd-build/get-shit-done/), [GitHub Spec Kit](https://github.com/github/spec-kit), and [Awesome Copilot](https://github.com/github/awesome-copilot). I incorporated the patterns that fit my pain points, things I'd identified through running retrospectives on my own sessions. Those are great projects and worth checking out. The space is crowded, and I don't expect a ton of usage here, but if anyone finds EngAgent useful I'd love to hear about it.
 
-Other differences:
-- **Portable across projects** — install once, use everywhere. No per-repo setup beyond `/eng-init`.
-- **Solo-first** — no orchestrator overhead, no agent swarms. One agent does the work; a second handles planning. Light subagent use for parallel research, with more delegation patterns coming.
-- **Research discipline** — unified rules for how the agent investigates before acting: confidence scoring (know when to stop researching), tool call budgets (don't spiral), failure escalation (two strikes, reassess), and pre-implementation context maps. The agent is encouraged to search documentation, fetch web resources, and use all available tools — not just guess from what's in context.
-- **Filesystem as memory** — `.eng/` directories are plain markdown, inspectable, diffable. No databases, no external services.
+What makes EngAgent different:
+
+- **Nothing hidden.** The repo is simple. You can follow exactly what's going on by reading the agents, prompts, and skills. No layers of orchestration, no magic.
+- **Retro-driven improvement.** After each session, run `/eng-retro` to capture what went wrong. Periodically, `/eng-retro-analysis` aggregates those retros and surfaces recurring patterns. You use those patterns to refine the agent's behavioral rules. It's a manual loop — you decide what changes, but it compounds over time. The prompts aren't perfect, but they're solid.
+- **Portable across projects.** Install once, use everywhere. No per-repo setup beyond `/eng-init`.
+- **You stay in control.** Two agents (`@eng` and `@eng-plan`), a handful of prompts, no multi-agent swarms or autonomous pipelines. You see what the agent is doing and decide when to proceed.
+- **Not just for code.** I use this for blog posts, sample repos, data science work, ML training runs, and general project tracking. The bigger tools in this space are geared toward production software teams. This works for anything you'd want an AI agent to help you think through and keep track of.
+- **Research discipline.** The agent is told to actually look things up before acting. There are rules for when to stop researching, when to ask, and when it's gone down a rabbit hole too long.
+- **Filesystem as memory.** `.eng/` directories are plain markdown, inspectable, diffable. No databases, no external services.
+- **A place to learn.** This is also where I learn about the AI agent ecosystem.
 
 ## What's Included
 
 | Type | Name | Purpose |
 |---|---|---|
-| **Agents** | `@eng` | General-purpose engineering agent — plans, investigates, implements, and tracks work |
-| | `@eng-plan` | Planning-only mode — researches and produces objectives without editing code |
-| **Prompts** | `/eng-init` | Bootstrap `.eng/` structure in a new project (run once per repo) |
-| | `/eng-status` | Dashboard view of active objectives and progress |
-| | `/eng-done` | Wrap up current task — update progress and commit |
-| | `/eng-fix` | Validate, migrate, backfill, or repair `.eng/` documentation |
-| | `/eng-retro` | End-of-session retrospective — collect mistakes, gaps, and positives |
-| | `/eng-retro-analysis` | Cross-session pattern analysis across multiple retros |
-| **Skills** | `eng-docs` | `.eng/` documentation system — objective templates, findings format, naming conventions |
-| | `eng-retro` | Retrospective system — collection template, severity rubric, category taxonomy |
-| **Hooks** | PreCompact | Checkpoint before context compaction — flushes objectives and decisions to disk |
-| **Instructions** | `preferences.instructions.md` | Universal coding preferences — style, naming, git conventions |
+| **Agents** | [`@eng`](src/agents/eng.agent.md) | General-purpose engineering agent. Plans, investigates, implements, and tracks work |
+| | [`@eng-plan`](src/agents/eng-plan.agent.md) | Planning-only mode. Researches and produces objectives without editing code |
+| **Prompts** | [`/eng-init`](src/prompts/eng-init.prompt.md) | Bootstrap `.eng/` structure in a new project (run once per repo) |
+| | [`/eng-status`](src/prompts/eng-status.prompt.md) | Dashboard view of active objectives and progress |
+| | [`/eng-done`](src/prompts/eng-done.prompt.md) | Wrap up current task. Update progress and commit |
+| | [`/eng-fix`](src/prompts/eng-fix.prompt.md) | Validate, migrate, backfill, or repair `.eng/` documentation |
+| | [`/eng-retro`](src/prompts/eng-retro.prompt.md) | End-of-session retrospective. Collect mistakes, gaps, and positives |
+| | [`/eng-retro-analysis`](src/prompts/eng-retro-analysis.prompt.md) | Cross-session pattern analysis across multiple retros |
+| **Skills** | [`eng-docs`](src/skills/eng-docs/SKILL.md) | `.eng/` documentation system: objective templates, findings format, naming conventions |
+| | [`eng-retro`](src/skills/eng-retro/SKILL.md) | Retrospective system: collection template, severity rubric, category taxonomy |
+| **Hooks** | PreCompact | Checkpoint before context compaction. Flushes objectives and decisions to disk |
+| **Instructions** | [`preferences.instructions.md`](src/instructions/preferences.instructions.md) | Universal coding preferences: style, naming, git conventions |
 
 ## How It Works
 
-EngAgent uses a four-tier instruction model:
+There are a few layers, but they're all just markdown files:
 
-1. **Global preferences** — `preferences.instructions.md` applies to all files in all workspaces. Coding style, naming, git conventions.
-2. **Agent definitions** — `eng.agent.md` and `eng-plan.agent.md` define behavioral rules: autonomy zones, research discipline, when to ask vs. proceed.
-3. **Skills** — `eng-docs` and `eng-retro` provide domain knowledge that agents load on demand when working with `.eng/` files.
-4. **Per-repo context** — `.eng/objectives/`, `.eng/findings/`, `.eng/retros/` in each project. The agent reads these to understand what's been done and what's next.
+- **`preferences.instructions.md`** sets coding style, naming, git conventions. Applies everywhere.
+- **`eng.agent.md`** and **`eng-plan.agent.md`** are the agent definitions. They have the behavioral rules: when to ask, when to just do it, how much to research before acting.
+- **Skills** (`eng-docs`, `eng-retro`) give the agent domain knowledge about `.eng/` file formats. It loads these on demand.
+- Then there's the **per-repo stuff** — `.eng/objectives/`, `.eng/findings/`, `.eng/retros/`. This is where the agent reads what's been done and figures out what's next.
 
-The `.eng/` directory is gitignored by default — it's local working memory, not project source code.
+> [!NOTE]
+> `.eng/` is gitignored by default. It's local working memory, not project source code.
 
 ### The `.eng/` directory
 
@@ -78,7 +77,7 @@ node cli.mjs build
 node cli.mjs install
 ```
 
-Before running `build`, you can optionally customize `config.json` to inject MCP server tools or any other tools into the agents. Copy `config.example.json` to `config.json` and add tools under the `tools` key — use `*` for all agents or a specific agent name:
+Before running `build`, you can optionally customize `config.json` to inject MCP server tools or any other tools into the agents. Copy `config.example.json` to `config.json` and add tools under the `tools` key. Use `*` for all agents or a specific agent name:
 
 ```json
 {
@@ -91,7 +90,7 @@ Before running `build`, you can optionally customize `config.json` to inject MCP
 
 `build` reads this config and injects the tools into agent frontmatter.
 
-You can also add tools at runtime — when chatting with `@eng` or `@eng-plan`, click the **tools** icon in the chat input, toggle on any MCP servers or built-in tools you want, and save. This doesn't require a rebuild.
+You can also add tools at runtime. When chatting with `@eng` or `@eng-plan`, click the **tools** icon in the chat input, toggle on any MCP servers or built-in tools you want, and save. This doesn't require a rebuild.
 
 **What the commands do:**
 
@@ -109,13 +108,14 @@ You can also add tools at runtime — when chatting with `@eng` or `@eng-plan`, 
 
 VS Code discovers agents, prompts, skills, and instructions from these paths in every workspace.
 
-> **Note:** Install on your **local/client machine** — the one running VS Code. If you use Remote SSH, Dev Containers, or WSL, install on the **client side only**. VS Code reads these settings from the client's user profile.
+> [!IMPORTANT]
+> Install on your **local/client machine**, the one running VS Code. If you use Remote SSH, you currently need to install on **both the client and the remote** due to a [VS Code bug](https://github.com/microsoft/vscode/issues/293768). This should eventually be client-side only.
 
 ### Configuration
 
 `config.json` also supports:
 
-- `installDir` — override the default `~/.copilot/engagent` location
+- `installDir`: override the default `~/.copilot/engagent` location
 
 ### Update
 
@@ -124,7 +124,7 @@ git pull
 node cli.mjs build
 ```
 
-Symlinks mean no reinstall — the build step is enough.
+Symlinks mean no reinstall. The build step is enough.
 
 ### Uninstall
 
@@ -138,11 +138,11 @@ Removes the symlink and VS Code settings entries.
 
 Once installed, in any VS Code workspace:
 
-1. **`/eng-init`** — scaffold `.eng/` in your project (once per repo)
-2. **`@eng-plan`** — define an objective, research the problem, plan tasks
-3. **`@eng`** — implement tasks from the active objective
-4. **`/eng-done`** — wrap up, update progress, commit
-5. **`/eng-retro`** — collect observations at end of session
+1. **`/eng-init`:** scaffold `.eng/` in your project (once per repo)
+2. **`@eng-plan`:** define an objective, research the problem, plan tasks
+3. **`@eng`:** implement tasks from the active objective
+4. **`/eng-done`:** wrap up, update progress, commit
+5. **`/eng-retro`:** collect observations at end of session
 
 For ongoing work, `@eng` reads `.eng/objectives/` to pick up where you left off. Use `/eng-status` for a quick dashboard.
 
@@ -156,17 +156,18 @@ Additional hooks (pre-flight checks, terminal output handling, session start) ar
 
 ## Roadmap
 
-Near-term planned additions:
+### What's next
 
-- **Session start hook** — auto-load active objectives and preferences when a chat session begins
-- **Pre-flight hook** — verify `.eng/` conventions are loaded before creating or editing `.eng/` files
-- **`/eng-validate` prompt** — check `.eng/` structure against conventions, flag issues
-- **JSON Schema for frontmatter** — machine-verify objective and findings metadata
-- **Parallel track detection** — identify independent task streams in objectives and run them concurrently (inspired by [GSD-for-Copilot](https://github.com/henningway/gsd-for-copilot))
-- **Thin orchestrator rule** — guidance for spawning subagents on complex multi-part tasks
-- **Parallel research subagents** — concurrent deep-dives instead of serial reads during planning
+- **Better hook coverage:** session start, pre-flight checks, terminal output handling. Still figuring out what hooks can and can't do well.
+- **Install improvements:** more customization options during install. Right now preferences ship as-is; you should be able to bring your own.
+- **Agent personality:** soul files, tone customization, that kind of thing. The agents are functional but generic. It'd be fun to make them yours.
+- **Smarter mistake capture:** automatic frustration detection, "why did you do that?" prompts that feed into the retro system without a manual `/eng-retro` step.
+- **Dedicated research agent:** research mode has become one of the most useful parts of this system. A purpose-built research agent would take that further.
+- **More borrowed patterns:** still watching projects like [Get Shit Done](https://github.com/gsd-build/get-shit-done/), [GitHub Spec Kit](https://github.com/github/spec-kit), and others for ideas worth pulling in.
 
-See [AGENTS.md](AGENTS.md) for the full project map.
+### On the horizon
+
+- **`.eng/` backup and sync:** right now `.eng/` is gitignored, which means it's local-only. That's dangerous. Looking at integrations with GitHub and Azure DevOps to store or back up `.eng/` contents. Maybe an MCP server, maybe something else. I don't know.
 
 ## Contributing
 
