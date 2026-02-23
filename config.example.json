@@ -1,0 +1,10 @@
+{
+  "installDir": "~/.copilot/engagent",
+  "tools": {
+    "*": [
+    ],
+    "eng-plan": [
+      "vscode.mermaid-chat-features/renderMermaidDiagram"
+    ]
+  }
+}
