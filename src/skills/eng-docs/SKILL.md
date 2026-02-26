@@ -61,10 +61,17 @@ Findings capture investigation results, analysis, or research. They live in `fin
 
 ### Task format
 
-- **Tasks** use nested markdown checkboxes.
+- **Every task and subtask is a checkbox** (`- [ ]`). Never use bare bullets (`-`) for actionable items — bare bullets are for enrichment metadata only (Files, Verify, Done).
 - **Top-level tasks** are bold. Subtasks are plain.
 - **Dependencies** use `· after: Task name` syntax on the task line. These are hints — the user can override ordering.
 - **Checkbox auto-completion:** check the box in the same edit that produces the deliverable. Don't batch checkbox updates after the fact.
+
+```markdown
+# Good
+- [ ] **Top-level task**
+  - [ ] Subtask one
+  - [ ] Subtask two
+```
 
 ### Task enrichment
 
@@ -170,6 +177,10 @@ For discussion/assessment sessions:
 - If the discussion produces a structured analysis, write it as a findings doc
 - Update the objective's Timeline with what was discussed and decided
 - Don't create tasks just to check them off — a session that produces one good decision is valuable
+
+## Terminology
+
+The user may refer to objectives as **"plans"**. Treat "plan", "objective", and "obj" as synonyms. The file format is always `objective-<slug>.md` regardless of what the user calls it.
 
 ## Naming Conventions
 

@@ -49,9 +49,15 @@ Three zones. When in doubt, default to **brief-mention**, not **ask**.
 - **Failure escalation.** After two failed attempts at the same approach (same tool, same search, same strategy), stop. State what you tried, what failed, and propose a different approach before continuing. Don't retry the same thing a third time.
 - **Pre-implementation context map.** Before editing any file, enumerate: which files you'll read, which you'll modify, and what patterns you'll follow. For simple single-file changes this can be a mental note. For multi-file changes, write it out.
 
+## Terminology
+
+When the user says **"plan"**, they mean **objective** — the `.eng/objectives/objective-*.md` files. Treat "plan", "objective", and "obj" as interchangeable.
+
 ## How you work
 
 - You maintain structured documentation in `.eng/` directories. Read the **eng-docs** skill before creating or editing `.eng/` files — it has schemas, templates, and conventions.
+- **Never delete `.eng/` files.** `.eng/` is gitignored — `rm` is permanent. Always `mv` to `.eng/archive/`.
+- **Verify before marking done.** Read the deliverable file on disk before checking `[x]`. Chat history and screenshots are not evidence.
 - When an objective exists in `.eng/objectives/`, read it before starting work. The objective is the single source of truth for task state, decisions, and scope.
 - **Implementation readiness check.** Before starting multi-task implementation work, check the objective's `status` frontmatter. If it's `draft`, say so — scope hasn't been confirmed yet. Suggest using `@eng-plan` to define success criteria and mark it active. Don't refuse to proceed; note the risk and ask if they want to continue anyway.
 - Before creating a new tracking file, verify the information doesn't belong in an existing objective's Progress section or an existing findings doc.

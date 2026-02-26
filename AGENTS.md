@@ -28,6 +28,8 @@ config.json                   # Local config (install dir, tool injection)
 |---|---|---|
 | `@eng` | [src/agents/eng.agent.md](src/agents/eng.agent.md) | General-purpose engineering agent. Plans, investigates, implements, and tracks work using `.eng/` documentation. Has behavioral rules for autonomy (three-zone model), research discipline (confidence scoring, budgets), and structured progress tracking. |
 | `@eng-plan` | [src/agents/eng-plan.agent.md](src/agents/eng-plan.agent.md) | Planning-only agent. Reads the codebase freely but only writes to `.eng/` directories. Never edits code or runs code-modifying commands. Use when defining objectives, researching approaches, or scoping work. Hands off to `@eng` for implementation. |
+| `@eng-research` | [src/agents/eng-research.agent.md](src/agents/eng-research.agent.md) | Deep research agent. Scopes questions, plans searches, investigates with parallel subagents, and produces structured findings in `.eng/findings/`. Delegates to `@eng-research-sub` for parallel sub-questions. |
+| `@eng-research-sub` | [src/agents/eng-research-sub.agent.md](src/agents/eng-research-sub.agent.md) | Research worker. Investigates a single sub-question within a tool-call budget and returns structured results. Read-only, no subagent delegation. Not user-invokable. |
 
 ## Prompts
 
@@ -39,6 +41,7 @@ config.json                   # Local config (install dir, tool injection)
 | `/eng-fix` | [src/prompts/eng-fix.prompt.md](src/prompts/eng-fix.prompt.md) | `@eng` | Maintenance mode. Validates `.eng/` structure, runs migration checklists, backfills missing documentation from git history, and fixes orphaned references. |
 | `/eng-retro` | [src/prompts/eng-retro.prompt.md](src/prompts/eng-retro.prompt.md) | `@eng` | End-of-session retrospective. Collects mistakes, tooling gaps, and positives into a structured retro file. Collection only — no fixes. |
 | `/eng-retro-analysis` | [src/prompts/eng-retro-analysis.prompt.md](src/prompts/eng-retro-analysis.prompt.md) | `@eng` | Cross-session pattern analysis. Reads retro files across projects, identifies recurring patterns, and produces a findings doc. |
+| `/eng-research` | [src/prompts/eng-research.prompt.md](src/prompts/eng-research.prompt.md) | `@eng-research` | Start a deep research investigation. Prompts for topic, scope hints, and depth (quick/standard/deep). Routes to the research agent. |
 
 ## Skills
 
@@ -60,6 +63,7 @@ Hooks are installed per-project by `/eng-init`. See [VS Code hooks documentation
 | File | Scope | Description |
 |---|---|---|
 | [src/instructions/preferences.instructions.md](src/instructions/preferences.instructions.md) | All files (`**`) | Universal coding preferences: naming conventions, YAGNI, DRY, comments ("why" not "what"), output hygiene, git commit style, refactoring guidelines. |
+| [src/instructions/eng-docs.instructions.md](src/instructions/eng-docs.instructions.md) | `.eng/**` | Lightweight pointer that reminds agents to load the eng-docs skill and re-read the relevant template before editing `.eng/` files. |
 
 ## Key Conventions
 
