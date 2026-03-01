@@ -13,7 +13,9 @@ Each project has a `.eng/` directory at its root:
 <project-root>/
 └── .eng/
     ├── objectives/     # objectives (the central hub for each effort)
+    ├── designs/        # design docs for complex work
     ├── findings/       # investigation results, analysis docs
+    ├── mistakes/       # detailed mistake logs (linked from objectives)
     ├── retros/         # session retrospectives (see eng-retro skill)
     └── archive/        # completed/superseded docs
 ```
@@ -31,14 +33,14 @@ Every document in `.eng/` has YAML frontmatter.
 ```yaml
 ---
 created: YYYY-MM-DD
-status: draft               # draft | active | completed | paused
+status: draft               # draft | in-review | approved | completed | deferred | cancelled
 project: <project-name>
 parent: <objective-filename.md>  # optional — parent objective if this is a sub-objective
 references: []              # optional — related objectives or docs
 ---
 ```
 
-Lifecycle: an objective starts as **draft** (problem defined, approach not yet confirmed). It becomes **active** when the user confirms the approach. It ends as **completed** or **paused**.
+Lifecycle: an objective starts as **draft** (problem defined, approach not yet confirmed). It moves to **in-review** when human and agent are working on it together, then **approved** when both agree it's good to go (decisions are locked). It ends as **completed** (done/closed), **deferred** (back to backlog — requires a reason), or **cancelled** (not doing this — requires a reason). Every status change gets a timeline entry.
 
 ### Findings
 
@@ -52,9 +54,36 @@ parent: <objective-filename.md>  # which objective produced this finding
 
 Findings capture investigation results, analysis, or research. They live in `findings/` and are linked from the objective's Investigations field.
 
+### Design docs
+
+```yaml
+---
+created: YYYY-MM-DD
+status: draft               # draft | in-review | approved | deferred | cancelled
+parent: objective-<slug>.md
+---
+```
+
+Design docs capture locked decisions for complex work. They live in `designs/` and are linked from the objective's Design section. Design docs share the same statuses as objectives except `completed` — they stay `approved` once done.
+
+### Mistake logs
+
+```yaml
+---
+created: YYYY-MM-DD
+parent: objective-<slug>.md
+agent: <agent-name>
+severity: minor | moderate | major
+trigger: self-report | /eng-wtf | frustration
+---
+```
+
+Detailed write-ups for mistakes too big for a one-liner in `## Mistakes`. They live in `mistakes/` and are linked from the objective.
+
 ## Templates
 
 - **Objective:** [references/objective-template.md](references/objective-template.md) — copy when creating a new objective
+- **Design:** [references/design-template.md](references/design-template.md) — copy for complex designs needing locked decisions
 - **Findings:** [references/findings-template.md](references/findings-template.md) — copy when writing up investigation results
 
 ## Objective Conventions
@@ -97,20 +126,26 @@ When the objective involves connecting components, include **wiring criteria**:
 
 > "The install script sets up hooks AND the hooks fire during agent sessions."
 
-### Section mutability
+### Section zones and mutability
 
-Objective sections have implicit mutation policies:
+Sections in objectives and design docs have two layered constraints:
 
-| Section | Policy | Notes |
-|---------|--------|-------|
-| Objective / Success criteria | OVERWRITE until `status: active`, then IMMUTABLE | Scope locked once work begins |
-| Design | OVERWRITE until `status: active`, then APPEND-only | Add notes, don't rewrite decisions |
-| Tasks | Checkboxes toggle; text IMMUTABLE once in-progress | Don't reword tasks mid-flight |
-| Progress → Status | OVERWRITE | Always reflects latest state |
-| Progress → Decisions | APPEND-only | Historical record, never edited |
-| Progress → Timeline | APPEND-only | Chronological, never reordered |
-| Progress → Open Questions | Items MOVE to Decisions when resolved | Remove resolved items |
-| Parking Lot | APPEND-only | User can promote or remove items |
+- **Zone** controls *who decides*: **Open** (agent writes freely) or **Protected** (agent drafts, user confirms before gate).
+- **Mutability** controls *how content evolves*: OVERWRITE, APPEND-only, or IMMUTABLE.
+
+Both apply simultaneously. A Protected APPEND-only section means the agent can draft new entries but the user confirms before a gate passes.
+
+| Section | Zone | Mutability | Notes |
+|---------|------|------------|-------|
+| Objective / Success criteria | Protected | OVERWRITE until approved, then IMMUTABLE | Scope locked once approved |
+| Design | Protected | OVERWRITE until approved, then APPEND-only | Add notes, don't rewrite decisions |
+| Tasks | Protected | Checkboxes toggle; text IMMUTABLE once in-progress | Don't reword tasks mid-flight |
+| Mistakes | Open | APPEND-only | Agent writes freely |
+| Progress → Status | Open | OVERWRITE | Always reflects latest state |
+| Progress → Decisions | Open | APPEND-only | Historical record, never edited |
+| Progress → Timeline | Open | APPEND-only | Chronological, never reordered |
+| Progress → Open Questions | Open | Items MOVE to Decisions when resolved | Remove resolved items |
+| Parking Lot | Open | APPEND-only | User can promote or remove items |
 
 ### Discretion boundaries
 
@@ -140,6 +175,35 @@ When uncertain, extend. A Parking Lot entry in the existing objective is cheaper
 ### Handoff section
 
 Objectives should include a `## Handoff` section when work may continue in a different session or with a different agent. Write it for a cold-start reader: current state, what's done, what's next, key decisions already made, and any gotchas.
+
+## Design Conventions
+
+Design can be documented at two tiers:
+
+### Inline design
+
+For simple work with no gray areas: use the `## Design` section in the objective with a status marker:
+
+```markdown
+## Design
+*Status: draft*
+
+Approach description.
+```
+
+The status marker follows the design doc lifecycle (`draft` → `in-review` → `approved`). When approved, the section becomes APPEND-only.
+
+### Full design doc
+
+For complex work (gray areas, trade-offs, decisions that must survive across sessions): create `design-<slug>.md` in `.eng/designs/` with three sections:
+
+- **Decisions** — Locked once approved. Implement exactly. Each has: name, description, violation consequence, verification test.
+- **Agent's Discretion** — Agent chooses approach without asking.
+- **Deferred** — Not now, but captured so they don't get lost.
+
+Link from the objective: `See [design-<slug>.md](../designs/design-<slug>.md)`
+
+See [references/design-template.md](references/design-template.md) for the full template.
 
 ## Per-task Progress Fields
 
@@ -185,7 +249,9 @@ The user may refer to objectives as **"plans"**. Treat "plan", "objective", and 
 ## Naming Conventions
 
 - **Objectives:** `objective-<slug>.md` (e.g., `objective-auth-refactor.md`)
+- **Designs:** `design-<slug>.md` (e.g., `design-auth-approach.md`)
 - **Findings:** `finding-<slug>.md` (e.g., `finding-chat-template-analysis.md`)
+- **Mistake logs:** `mistake-<slug>-YYYY-MM-DD.md` (e.g., `mistake-wrong-migration-2026-03-01.md`)
 - **Retros:** see **eng-retro** skill for naming convention
 - **Archive:** move files to `archive/` as-is, or with date suffix if needed: `objective-old.2026-02-07.md`
 

@@ -5,7 +5,7 @@ File location: `.eng/objectives/objective-<slug>.md`
 ```markdown
 ---
 created: YYYY-MM-DD
-status: draft
+status: draft               # draft | in-review | approved | completed | deferred | cancelled
 project: <project-name>
 ---
 
@@ -15,7 +15,9 @@ project: <project-name>
 What we're trying to accomplish. Success criteria as observable truths — verifiable assertions about the end state, not task descriptions.
 
 ## Design
-(Optional) Architectural decisions, key constraints, approach rationale.
+*Status: draft*
+
+(Optional) Approach rationale, key constraints. For complex work with gray areas, use a full design doc instead: `See [design-<slug>.md](../designs/design-<slug>.md)`
 
 ## Tasks
 - [ ] **Task name**
@@ -40,6 +42,12 @@ What we're trying to accomplish. Success criteria as observable truths — verif
 
 **Timeline:**
 - YYYY-MM-DD: What happened — why — outcome
+
+## Mistakes
+*Captured as they happen. Feeds retro system.*
+<!-- Log it: wrong assumption → wasted work, missed available context, convention loaded but not applied, unnecessary action, scope creep past gate, user correction (frustration-trigger). -->
+<!-- Don't log: normal course corrections, unknowable things (missing docs), user-initiated pivots. -->
+- YYYY-MM-DD: What — why — severity (minor/moderate/major)
 
 ## Parking Lot
 - Out-of-scope items discovered during work
