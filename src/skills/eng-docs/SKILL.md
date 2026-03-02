@@ -17,6 +17,7 @@ Each project has a `.eng/` directory at its root:
     ├── findings/       # investigation results, analysis docs
     ├── mistakes/       # detailed mistake logs (linked from objectives)
     ├── retros/         # session retrospectives (see eng-retro skill)
+    ├── scratch/        # agent working notes, drafts, questionnaires — low-ceremony, probably temporary
     └── archive/        # completed/superseded docs
 ```
 

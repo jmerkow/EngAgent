@@ -6,5 +6,9 @@
     "eng-plan": [
       "vscode.mermaid-chat-features/renderMermaidDiagram"
     ]
+  },
+  "excludeTools": {
+    "*-sub": ["agent/runSubagent"],
+    "eng-research-sub": ["edit/createDirectory", "edit/createFile", "edit/createJupyterNotebook", "edit/editFiles", "edit/editNotebook"]
   }
 }
