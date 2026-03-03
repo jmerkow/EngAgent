@@ -2,7 +2,7 @@
 
 File location: `.eng/findings/finding-<slug>.md`
 
-Findings capture investigation results, analysis, or research. One topic per finding. They live in `findings/` and are linked from the objective's Investigations field.
+One topic per finding. Linked from the objective's Investigations field.
 
 ```markdown
 ---
@@ -14,14 +14,14 @@ parent: <objective-filename.md>
 # Title
 
 ## Context
-What prompted this investigation — the question or problem being explored.
+<!-- 1-3 sentences: what question or problem prompted this -->
 
 ## Findings
-What was discovered. Structure as needed (subsections, tables, comparisons).
+<!-- structure as needed: subsections, tables, comparisons. No prose summaries of things better shown in a table. -->
 
 ## Conclusions
-Key takeaways, summaries and their implications for the parent objective.
+<!-- 3-5 bullets: key takeaways and implications for the parent objective -->
 
-## Sources (optional)
-Optional section to place any reference or sources not listed else where.
+## Sources
+<!-- optional: reference links not cited inline -->
 ```

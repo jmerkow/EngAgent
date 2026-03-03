@@ -86,6 +86,7 @@ Detailed write-ups for mistakes too big for a one-liner in `## Mistakes`. They l
 - **Objective:** [references/objective-template.md](references/objective-template.md) — copy when creating a new objective
 - **Design:** [references/design-template.md](references/design-template.md) — copy for complex designs needing locked decisions
 - **Findings:** [references/findings-template.md](references/findings-template.md) — copy when writing up investigation results
+- **Mistake log:** [references/mistake-template.md](references/mistake-template.md) — copy for detailed mistake write-ups (most mistakes stay inline)
 
 ## Objective Conventions
 
@@ -271,6 +272,14 @@ When something changes:
 1. Update the task's Open Questions or Decisions as appropriate
 2. If scope changes significantly, update the Objective or Tasks section directly (only while `status: draft`)
 
+## Cold Read
+
+A **cold read** tests whether a fresh agent — no conversation history — can pick up a document and understand what's happening, what's decided, and what to do next. Every `.eng/` document should pass a cold read.
+
+Cold read failures: unexplained jargon, decisions without rationale, context that only exists in conversation, references with no summary of what they contain.
+
+See the **eng-check** skill for structured cold-read validation.
+
 ## Rules
 
 - `after:` dependencies are **hints**, not hard blocks. The user can override ordering.
@@ -279,5 +288,6 @@ When something changes:
 - Only use `parent` and `references` for linking. No `children` or `related` fields — the objective is the hub.
 - Keep findings focused — one topic per finding.
 - When the user corrects you, record it in the relevant task's Decisions. This is how alignment improves.
-- **Single source of truth.** When a fact appears in multiple docs (objective, findings, retro), one location is authoritative and others reference it. Corrections happen in one place. If a finding establishes a conclusion, the objective references the finding rather than restating the conclusion.
+- **Single source of truth.** One location is authoritative; others use a one-line summary + link. A one-line summary is not restating — it provides context so the reader knows whether to follow the link. Copying paragraphs or duplicating conclusions across files is restating.
 - **Retro scope.** A retro covers one session. Cross-session pattern analysis is a separate workflow that produces a findings doc (e.g., `finding-retro-patterns-YYYY-MM-DD.md`). Don't mix collection and analysis in the same document.
+- **Verify before destructive operations.** If a task includes a destructive step (build, deploy, delete), verify inputs *before* running it — not after. "Build and verify" is wrong; "verify sources, then build" is right.

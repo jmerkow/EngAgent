@@ -13,37 +13,31 @@ parent: objective-<slug>.md
 # Design: Title
 
 ## Overview
+<!-- 1-3 sentences of concise description -->
 
-**Problem:** What we're solving and why existing approach falls short.
+**Problem:** What we're solving.
 
-**Approach:** High-level summary of the solution direction.
+**Approach:** Solution direction.
 
 ## Decisions
-
+<!-- one block per decision, no prose between them -->
 *LOCKED — implement exactly. Violating any requires user approval.*
 
-**D1. Decision name**
-
-Description of the decision.
-
+**D1. Decision name.** What to do.
 - *If violated:* What goes wrong.
-- *Test:* How to verify this was implemented correctly.
+- *Test:* How to verify.
 
 ## Agent's Discretion
-
-*Agent chooses approach. Don't ask about these.*
-
+<!-- 3-5 bullets max -->
 - Area where agent picks the implementation detail
 
 ## Deferred
-
-*Not now — revisit later. Each item captured so it doesn't get lost.*
-
+<!-- 1 bullet per item: what — why deferred -->
 - Feature or idea — why it's deferred
 
 ## Reference
-
-*Optional. Supporting detail for implementers: tables, templates, examples.*
+<!-- optional: tables, examples, supporting detail for implementers -->
+<!-- deliberation and exploration belong in .eng/scratch/, not here -->
 ```
 
 ````
