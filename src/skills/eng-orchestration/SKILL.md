@@ -125,3 +125,18 @@ The user asks for a status summary across 3 objectives. All objectives are in `.
 If a synthesis sub returns PARTIAL because it couldn't find context it needed, that's a signal: the context probably should have been written to `.eng/` but wasn't. Treat it as a documentation gap.
 
 This is a heuristic, not a certainty — PARTIAL can also mean budget issues or a poorly scoped prompt. But if the missing context is something you know and haven't externalized, that's a mistake worth logging. Write the context down, retry if needed.
+
+## Minimum context for `.eng/` operations
+
+When delegating `.eng/`-related tasks, include these essentials so the subagent can orient without loading the full eng-docs skill:
+
+- **Active objective path:** `.eng/objectives/objective-*.md`
+- **Key file naming patterns:**
+  - Objectives: `objective-*.md`
+  - Findings: `finding-*.md`
+  - Retros: `retro-*.md`
+  - Mistakes: `mistake-*.md`
+  - Designs: `design-*.md`
+- **Directory structure:** objectives, findings, retros, scratch (working notes)
+
+See the **eng-docs skill** for full schemas, templates, and section mutability rules.

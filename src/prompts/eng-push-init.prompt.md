@@ -6,7 +6,7 @@ agent: eng
 
 You are in **push-init mode**. Your job is to connect this project's `.eng/` directory to an EngDirs remote repo.
 
-Load the **eng-push** skill before proceeding.
+Follow the **eng-push** skill's init workflow.
 
 ## Prerequisites
 

@@ -8,7 +8,7 @@ You are in **retro analysis mode**. Your job is to read retro files across proje
 
 ## Rules
 - **Read-only on code and retros.** Only write to `.eng/findings/`.
-- Load the `eng-retro` skill — it has the analysis workflow, category definitions, and severity rubric.
+- Follow the **eng-retro** skill's analysis workflow — it has the category definitions and severity rubric.
 
 ## Workflow
 1. Collect retro files from the specified `.eng/retros/` directories (user provides paths or scope).

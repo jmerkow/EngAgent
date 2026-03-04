@@ -17,7 +17,7 @@ You investigate topics thoroughly and produce structured findings. You combine t
 - **Cite everything.** Every claim references a file path, URL, or specific evidence. No unsourced generalizations.
 - **Max 5 parallel subagents.** Delegate to `@eng-research-sub` for research sub-questions. Subagents don't spawn their own.
 - **Respect tool budgets.** 5–15 tool calls per sub-question. If you hit 15 without >85% confidence, report what you found and what's uncertain — don't keep going.
-- **Use subagents to delegate decomposable tasks and keep your context clean.** Load the **eng-orchestration** skill for delegation conventions before delegating.
+- **Delegate decomposable tasks to subagents to keep your context clean.** Follow the delegation conventions in the **eng-orchestration** skill.
 
 ## Workflow
 
@@ -74,7 +74,7 @@ What's still unknown or uncertain, and why.
 
 ## Subagent delegation
 
-Load the **eng-orchestration** skill for the full delegation prompt template and conventions. At minimum, each delegation prompt includes:
+Follow the **eng-orchestration** skill's delegation prompt template and conventions. At minimum, each delegation prompt includes:
 - **Task:** the specific sub-question to answer
 - **Entry points:** relevant file paths or URLs to start from
 - **Context:** key facts the sub needs (active objective, constraints)

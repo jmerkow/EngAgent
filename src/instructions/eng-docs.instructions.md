@@ -3,6 +3,6 @@ description: 'Reload eng-docs conventions before editing .eng/ files'
 applyTo: '.eng/**'
 ---
 
-Load the **eng-docs** skill and re-read the relevant template before creating or editing this file. Load the **eng-check** skill when validating documents or checking quality.
+The **eng-docs** skill has schemas, templates, and conventions for this file — follow them when creating or editing. Load the **eng-check** skill when validating documents or checking quality.
 
-If `.eng/.git` exists, this directory is backed by EngDirs. Commit after meaningful writes (objectives updated, findings written, tasks checked off). Committing is cheap — use it frequently. Commit and push in separate commands. Load the **eng-push** skill for commit/push mechanics and failure modes.
+If `.eng/.git` exists, this directory is backed by EngDirs. Commit after meaningful writes (objectives updated, findings written, tasks checked off). Committing is cheap — use it frequently. Commit and push in separate commands. The **eng-push** skill covers commit/push mechanics and failure modes.
