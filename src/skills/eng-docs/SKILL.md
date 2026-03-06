@@ -1,73 +1,77 @@
 ---
 name: eng-docs
-description: Structured engineering documentation system using .eng/ directories. Covers objective templates, findings format, metadata schemas, naming conventions, section mutability rules, and task dependency syntax. Use when creating, reading, or updating any file in .eng/ directories, including objectives, findings, retros, and archive. Also use when asked to scaffold a new .eng/ structure, check objective format compliance, archive completed objectives, or write handoff sections.
+description: Engineering documentation registry — file types, schemas, naming, and template pointers for .eng/ directories. For workflow phases and gates, see eng-workflow. For objective conventions (task format, zones, mutability), see references/objective-conventions.md. For design conventions, see references/design-conventions.md.
 ---
 
 # Engineering Documentation System
 
 ## Directory Structure
 
-Each project has a `.eng/` directory at its root:
-
 ```
 <project-root>/
 └── .eng/
-    ├── objectives/     # objectives (the central hub for each effort)
+    ├── objectives/     # central hub for each piece of work
     ├── designs/        # design docs for complex work
-    ├── findings/       # investigation results, analysis docs
+    ├── findings/       # investigation results, analysis
     ├── mistakes/       # detailed mistake logs (linked from objectives)
     ├── retros/         # session retrospectives (see eng-retro skill)
-    ├── scratch/        # agent working notes, drafts, questionnaires — low-ceremony, probably temporary
+    ├── scratch/        # working notes, drafts — low-ceremony, temporary
     └── archive/        # completed/superseded docs
 ```
 
-`.eng/` is gitignored. Use terminal commands (`find`, `cat`, `ls`) or set `includeIgnoredFiles: true` when searching for `.eng/` content — default search tools will silently skip it otherwise.
+`.eng/` is gitignored. Use terminal commands or `includeIgnoredFiles: true` when searching.
 
-Create this structure when it doesn't exist. Retro-specific conventions (categories, severity rubric, analysis workflow) are in the **eng-retro** skill.
-
-## Metadata Schemas
-
-Every document in `.eng/` has YAML frontmatter.
+## File Types
 
 ### Objectives
 
+**Purpose:** Central tracking document for a piece of work — scope, design, tasks, timeline.
+
 ```yaml
 ---
 created: YYYY-MM-DD
-status: draft               # draft | in-review | approved | completed | deferred | cancelled
-project: <project-name>
-parent: <objective-filename.md>  # optional — parent objective if this is a sub-objective
-references: []              # optional — related objectives or docs
+status: draft       # draft | in-review | approved | in-progress | needs-verify | completed | deferred | cancelled
+project: <name>
+parent: <filename>  # optional — parent objective
+references: []      # optional — related docs
 ---
 ```
 
-Lifecycle: an objective starts as **draft** (problem defined, approach not yet confirmed). It moves to **in-review** when human and agent are working on it together, then **approved** when both agree it's good to go (decisions are locked). It ends as **completed** (done/closed), **deferred** (back to backlog — requires a reason), or **cancelled** (not doing this — requires a reason). Every status change gets a timeline entry.
+**Template:** [references/objective-template.md](references/objective-template.md)
+**Conventions:** [references/objective-conventions.md](references/objective-conventions.md) — task format, stable IDs, zones/mutability, success criteria
 
-### Findings
+### Design Docs
 
-```yaml
----
-created: YYYY-MM-DD
-project: <project-name>
-parent: <objective-filename.md>  # which objective produced this finding
----
-```
-
-Findings capture investigation results, analysis, or research. They live in `findings/` and are linked from the objective's Investigations field.
-
-### Design docs
+**Purpose:** Locked decisions for complex work — what to do, what breaks if violated, how to verify.
 
 ```yaml
 ---
 created: YYYY-MM-DD
-status: draft               # draft | in-review | approved | deferred | cancelled
+status: draft       # draft | in-review | approved | deferred | cancelled
 parent: objective-<slug>.md
 ---
 ```
 
-Design docs capture locked decisions for complex work. They live in `designs/` and are linked from the objective's Design section. Design docs share the same statuses as objectives except `completed` — they stay `approved` once done.
+**Template:** [references/design-template.md](references/design-template.md)
+**Conventions:** [references/design-conventions.md](references/design-conventions.md) — tiers, decision format, status lifecycle
 
-### Mistake logs
+### Findings
+
+**Purpose:** Investigation results and analysis, linked from objectives.
+
+```yaml
+---
+created: YYYY-MM-DD
+project: <name>
+parent: <objective-filename.md>
+---
+```
+
+**Template:** [references/findings-template.md](references/findings-template.md)
+
+### Mistake Logs
+
+**Purpose:** Detailed write-ups for mistakes too big for a one-liner in `## Mistakes`.
 
 ```yaml
 ---
@@ -79,215 +83,33 @@ trigger: self-report | /eng-wtf | frustration
 ---
 ```
 
-Detailed write-ups for mistakes too big for a one-liner in `## Mistakes`. They live in `mistakes/` and are linked from the objective.
-
-## Templates
-
-- **Objective:** [references/objective-template.md](references/objective-template.md) — copy when creating a new objective
-- **Design:** [references/design-template.md](references/design-template.md) — copy for complex designs needing locked decisions
-- **Findings:** [references/findings-template.md](references/findings-template.md) — copy when writing up investigation results
-- **Mistake log:** [references/mistake-template.md](references/mistake-template.md) — copy for detailed mistake write-ups (most mistakes stay inline)
-
-## Objective Conventions
-
-### Task format
-
-- **Every task and subtask is a checkbox** (`- [ ]`). Never use bare bullets (`-`) for actionable items — bare bullets are for enrichment metadata only (Files, Verify, Done).
-- **Top-level tasks** are bold. Subtasks are plain.
-- **Dependencies** use `· after: Task name` syntax on the task line. These are hints — the user can override ordering.
-- **Checkbox auto-completion:** check the box in the same edit that produces the deliverable. Don't batch checkbox updates after the fact.
-
-```markdown
-# Good
-- [ ] **Top-level task**
-  - [ ] Subtask one
-  - [ ] Subtask two
-```
-
-### Task enrichment
-
-Simple tasks stay as one-line checkboxes. For complex tasks, add context directly under the checkbox:
-
-```markdown
-- [ ] **Migrate terminology: plan → objective**
-  - Files: eng-docs SKILL.md, all objective-*.md, eng.agent.md, eng-plan.agent.md, prompts
-  - Verify: `grep -r "plan-" .eng/objectives/` returns 0 results; all `parent:` frontmatter resolves
-  - Done: No references to "plan" as our document type remain outside retro files
-```
-
-The enriched fields (Files, Verify, Done) are optional — use them when the executor needs more context than the title provides. Don't mandate structure for simple tasks.
-
-### Success criteria
-
-Success criteria are **observable truths**, not task descriptions.
-
-- **Bad:** "Rename all files."
-- **Good:** "All objective files use `objective-*.md` naming and all `parent:` references resolve."
-
-When the objective involves connecting components, include **wiring criteria**:
-
-> "The install script sets up hooks AND the hooks fire during agent sessions."
-
-### Section zones and mutability
-
-Sections in objectives and design docs have two layered constraints:
-
-- **Zone** controls *who decides*: **Open** (agent writes freely) or **Protected** (agent drafts, user confirms before gate).
-- **Mutability** controls *how content evolves*: OVERWRITE, APPEND-only, or IMMUTABLE.
-
-Both apply simultaneously. A Protected APPEND-only section means the agent can draft new entries but the user confirms before a gate passes.
-
-| Section | Zone | Mutability | Notes |
-|---------|------|------------|-------|
-| Objective / Success criteria | Protected | OVERWRITE until approved, then IMMUTABLE | Scope locked once approved |
-| Design | Protected | OVERWRITE until approved, then APPEND-only | Add notes, don't rewrite decisions |
-| Tasks | Protected | Checkboxes toggle; text IMMUTABLE once in-progress | Don't reword tasks mid-flight |
-| Mistakes | Open | APPEND-only | Agent writes freely |
-| Progress → Status | Open | OVERWRITE | Always reflects latest state |
-| Progress → Decisions | Open | APPEND-only | Historical record, never edited |
-| Progress → Timeline | Open | APPEND-only | Chronological, never reordered |
-| Progress → Open Questions | Open | Items MOVE to Decisions when resolved | Remove resolved items |
-| Parking Lot | Open | APPEND-only | User can promote or remove items |
-
-### Discretion boundaries
-
-When recording decisions, also note what was explicitly left to agent discretion. This prevents the agent from asking about things already marked as "your call."
-
-Example: `- Timeline entry wording: agent's discretion — keep it descriptive.`
-
-### Growth and specificity
-
-- **Objectives grow over time.** Early objectives describe problems and success criteria. Don't write implementation subtasks or design choices until the user confirms the approach.
-- **Agent observations go to Parking Lot.** Tasks must trace to user-stated problems or requests. If the agent notices something (a code smell, a potential improvement), it goes in Parking Lot — not Tasks — unless the user explicitly promotes it.
-- The objective is the **central hub** — it links forward to findings and retros; those link back via `parent`.
-- **Parking Lot** goes at the end. Simple bullet list.
-
-### When to create a new objective
-
-Create a **new objective** when:
-- The work has different success criteria than any existing objective
-- The scope is clearly independent (different project area, different deliverable)
-
-**Extend an existing objective** when:
-- New work furthers the same success criteria
-- The discovery happened during work on that objective and is directly related
-
-When uncertain, extend. A Parking Lot entry in the existing objective is cheaper than a premature new objective.
-
-### Handoff section
-
-Objectives should include a `## Handoff` section when work may continue in a different session or with a different agent. Write it for a cold-start reader: current state, what's done, what's next, key decisions already made, and any gotchas.
-
-## Design Conventions
-
-Design can be documented at two tiers:
-
-### Inline design
-
-For simple work with no gray areas: use the `## Design` section in the objective with a status marker:
-
-```markdown
-## Design
-*Status: draft*
-
-Approach description.
-```
-
-The status marker follows the design doc lifecycle (`draft` → `in-review` → `approved`). When approved, the section becomes APPEND-only.
-
-### Full design doc
-
-For complex work (gray areas, trade-offs, decisions that must survive across sessions): create `design-<slug>.md` in `.eng/designs/` with three sections:
-
-- **Decisions** — Locked once approved. Implement exactly. Each has: name, description, violation consequence, verification test.
-- **Agent's Discretion** — Agent chooses approach without asking.
-- **Deferred** — Not now, but captured so they don't get lost.
-
-Link from the objective: `See [design-<slug>.md](../designs/design-<slug>.md)`
-
-See [references/design-template.md](references/design-template.md) for the full template.
-
-## Per-task Progress Fields
-
-The objective's `## Progress` section has one subsection per task. All fields are optional except Status. Skip empty fields — no blank placeholders.
-
-| Field | Required | Policy | Purpose |
-|---|---|---|---|
-| **Status** | Yes | OVERWRITE | One-line summary of where this stands |
-| **Description** | No | OVERWRITE | Context beyond the task title |
-| **Open Questions** | No | MOVE to Decisions | Unresolved things for this task |
-| **Decisions** | No | APPEND-only | Resolved choices and why |
-| **Investigations** | No | APPEND-only | Links to findings docs |
-| **Timeline** | No | APPEND-only | Chronological: what + why + outcome |
-
-### Timeline entries
-
-Timeline entries should be self-contained — a reader should understand what happened without following links.
-
-```
-- YYYY-MM-DD: What happened — why — outcome
-```
-
-Good: `2026-02-21: Cross-reference analysis complete. Subagent analyzed 7 patterns against ecosystem findings. 4 new subtasks added, 3 existing refined.`
-
-Bad: `2026-02-21: Did analysis [link]`
-
-Include key data inline. External links are supplementary, not required.
-
-## Discussion and Assessment Sessions
-
-Not all sessions produce code or checked-off tasks. Some sessions are exploratory: discussing approach, assessing options, making decisions. These are legitimate work.
-
-For discussion/assessment sessions:
-- Record decisions in the relevant objective's Decisions field
-- If the discussion produces a structured analysis, write it as a findings doc
-- Update the objective's Timeline with what was discussed and decided
-- Don't create tasks just to check them off — a session that produces one good decision is valuable
-
-## Terminology
-
-The user may refer to objectives as **"plans"**. Treat "plan", "objective", and "obj" as synonyms. The file format is always `objective-<slug>.md` regardless of what the user calls it.
+**Template:** [references/mistake-template.md](references/mistake-template.md)
 
 ## Naming Conventions
 
-- **Objectives:** `objective-<slug>.md` (e.g., `objective-auth-refactor.md`)
-- **Designs:** `design-<slug>.md` (e.g., `design-auth-approach.md`)
-- **Findings:** `finding-<slug>.md` (e.g., `finding-chat-template-analysis.md`)
-- **Mistake logs:** `mistake-<slug>-YYYY-MM-DD.md` (e.g., `mistake-wrong-migration-2026-03-01.md`)
-- **Retros:** see **eng-retro** skill for naming convention
-- **Archive:** move files to `archive/` as-is, or with date suffix if needed: `objective-old.2026-02-07.md`
+- **Objectives:** `objective-<slug>.md`
+- **Designs:** `design-<slug>.md`
+- **Findings:** `finding-<slug>.md`
+- **Mistake logs:** `mistake-<slug>-YYYY-MM-DD.md`
+- **Retros:** see **eng-retro** skill
+- **Archive:** move as-is, or with date suffix: `objective-old.2026-02-07.md`
 
-## Updating Objectives
+## Terminology
 
-When completing work (or use `/eng-done` to do this interactively):
+"Plan", "objective", and "obj" are synonyms. File format is always `objective-<slug>.md`.
 
-1. Check off the task checkbox (`- [ ]` → `- [x]`) in the same edit as the deliverable
-2. Update the task's Status in the Progress section
-3. Add a Timeline entry describing what happened, why, and the outcome
-4. Bubble up key decisions into the task's Decisions list
-5. Commit — don't let completed work sit uncommitted. Offer to commit after finishing a task or before switching context.
+## Universal Rules
 
-When something changes:
+- Every `.eng/` document has YAML frontmatter.
+- Objectives are living documents — edit in place, don't create versions.
+- Only use `parent` and `references` for linking. No `children` or `related` fields.
+- **Single source of truth.** One location is authoritative; others use a one-line summary + link.
+- **Never delete `.eng/` files.** `.eng/` is gitignored — `rm` is permanent. Always `mv` to `.eng/archive/`.
+- **Verify before destructive operations.** Verify inputs before running.
+- **Cold read.** Every document should be understandable by a fresh agent with no conversation history.
 
-1. Update the task's Open Questions or Decisions as appropriate
-2. If scope changes significantly, update the Objective or Tasks section directly (only while `status: draft`)
+## Related Skills
 
-## Cold Read
-
-A **cold read** tests whether a fresh agent — no conversation history — can pick up a document and understand what's happening, what's decided, and what to do next. Every `.eng/` document should pass a cold read.
-
-Cold read failures: unexplained jargon, decisions without rationale, context that only exists in conversation, references with no summary of what they contain.
-
-See the **eng-check** skill for structured cold-read validation.
-
-## Rules
-
-- `after:` dependencies are **hints**, not hard blocks. The user can override ordering.
-- Every document in `.eng/` must have YAML frontmatter.
-- Objectives are living documents — edit in place, don't create new versions.
-- Only use `parent` and `references` for linking. No `children` or `related` fields — the objective is the hub.
-- Keep findings focused — one topic per finding.
-- When the user corrects you, record it in the relevant task's Decisions. This is how alignment improves.
-- **Single source of truth.** One location is authoritative; others use a one-line summary + link. A one-line summary is not restating — it provides context so the reader knows whether to follow the link. Copying paragraphs or duplicating conclusions across files is restating.
-- **Retro scope.** A retro covers one session. Cross-session pattern analysis is a separate workflow that produces a findings doc (e.g., `finding-retro-patterns-YYYY-MM-DD.md`). Don't mix collection and analysis in the same document.
-- **Verify before destructive operations.** If a task includes a destructive step (build, deploy, delete), verify inputs *before* running it — not after. "Build and verify" is wrong; "verify sources, then build" is right.
+- **eng-workflow** — phases, gates, status lifecycle
+- **eng-retro** — retro format, categories, analysis
+- **eng-check** — document validation, cold-read checks

@@ -1,4 +1,3 @@
-````markdown
 # Design Doc Template
 
 File location: `.eng/designs/design-<slug>.md`
@@ -40,4 +39,12 @@ parent: objective-<slug>.md
 <!-- deliberation and exploration belong in .eng/scratch/, not here -->
 ```
 
-````
+## Usage
+
+The design section's `*Status:*` marker tracks progress through the planning sub-phase:
+
+- `*Status: draft*` — decisions being explored
+- `*Status: in-review*` — ready for review and challenge
+- `*Status: approved*` — decisions locked; implementation can reference them
+
+For inline designs (simple work, no gray areas), use the `## Design` section directly in the objective with the same `*Status:*` marker pattern.

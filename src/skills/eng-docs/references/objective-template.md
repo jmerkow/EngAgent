@@ -5,7 +5,7 @@ File location: `.eng/objectives/objective-<slug>.md`
 ```markdown
 ---
 created: YYYY-MM-DD
-status: draft               # draft | in-review | approved | completed | deferred | cancelled
+status: draft               # draft | in-review | approved | in-progress | needs-verify | completed | deferred | cancelled
 project: <project-name>
 ---
 
@@ -17,30 +17,34 @@ project: <project-name>
 ### Success criteria
 <!-- 3-5 bullets: each independently verifiable, no task descriptions -->
 
+### Notes
+<!-- Informal thoughts, observations, context — always writable -->
+
+### Open Questions
+<!-- Unknowns to resolve — feeds into Design. Move to Decisions when answered -->
+
 ## Design
-<!-- one line if simple, link if complex -->
+<!-- Available after scoping -->
 *Status: draft*
 
 For complex work: `See [design-<slug>.md](../designs/design-<slug>.md)`
 
-## Tasks
+## Implementation Plan
+<!-- Available after scoping -->
+*Status: draft*
+
 <!-- checkboxes only — no bare bullets for actionable items -->
-- [ ] **Task name**
-  - [ ] Subtask
-- [ ] **Another task** · after: Task name
+<!-- Tasks use T<N> stable IDs. Decision refs use [implements: D1, D2]. Dependencies use (after: T1, T2). -->
+<!-- IDs are assigned once — never reassigned. Gaps are fine. See objective-conventions.md. -->
+- [ ] **T1: Task name** [implements: D1] (after: T2)
+  - Done: observable completion criterion
 
-## Progress
-<!-- one subsection per task, skip empty fields -->
-
-### Task Name
-**Status:** One-line summary
-
-**Timeline:**
+## Timeline
+<!-- Chronological log: what happened, why, outcome. APPEND-only. -->
 - YYYY-MM-DD: What — why — outcome
 
 ## Mistakes
 <!-- one-liners: YYYY-MM-DD: What — why — severity. Link detail file if needed. -->
-<!-- Don't duplicate content from mistake logs — summary + link. -->
 
 ## Parking Lot
 <!-- 1 bullet per item, no elaboration -->

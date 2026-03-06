@@ -1,8 +1,8 @@
 ---
-description: 'Reload eng-docs conventions before editing .eng/ files'
+description: 'Load eng-docs (file types, schemas, templates) and eng-workflow (phases, gates) before editing .eng/ files'
 applyTo: '.eng/**'
 ---
 
-The **eng-docs** skill has schemas, templates, and conventions for this file — follow them when creating or editing. Load the **eng-check** skill when validating documents or checking quality.
+The **eng-docs** skill has file type schemas, naming conventions, and template pointers — follow them when creating or editing `.eng/` files. Convention details (task format, zones/mutability, design tiers) are in the skill's `references/` directory. The **eng-workflow** skill defines phases, status values, and gate checklists. Load **eng-check** when validating documents.
 
-If `.eng/.git` exists, this directory is backed by EngDirs. Commit after meaningful writes (objectives updated, findings written, tasks checked off). Committing is cheap — use it frequently. Commit and push in separate commands. The **eng-push** skill covers commit/push mechanics and failure modes.
+If `.eng/.git` exists, this directory is backed by EngDirs. Commit after meaningful writes. The **eng-push** skill covers commit/push mechanics.

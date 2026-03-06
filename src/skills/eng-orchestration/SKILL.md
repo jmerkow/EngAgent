@@ -47,7 +47,7 @@ Every delegation prompt includes these fields:
 - Task: Investigate how VS Code propagates workspace-level instructions to subagents
 - Entry points: VS Code docs at https://code.visualstudio.com/docs/copilot/chat/chat-agents,
   the applyTo field in .github/instructions/*.instructions.md
-- Context: We're adding a new leaf agent (eng-sub) and need to confirm instructions
+- Context: We're adding a new leaf agent (eng-code-sub) and need to confirm instructions
   reach it without explicit wiring. Active objective: objective-orchestration-improvements.md
 - Deliverable: Findings doc in .eng/findings/ with evidence for/against automatic propagation
 - Budget: 15 tool calls
