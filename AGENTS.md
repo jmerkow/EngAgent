@@ -17,6 +17,10 @@ config.json                   # Local config (install dir, tool injection)
 - `src/` is the source of truth. Run `node cli.mjs build` to copy `src/` → `.github/`. Don't edit `.github/` directly (except `hooks/`).
 - **Build is destructive** — it deletes `.github/` subdirectories before copying. `.github/` may be a symlink. Verify source files are correct before building.
 
+## The Library
+
+`docs/the-library/` contains curated research on agent frameworks, VS Code customization, and orchestration patterns. Grep `docs/the-library/topics.md` to find docs by topic. Each doc starts with a title, optional badge line, and a blockquote description + Key concepts — read the first 10 lines to triage relevance before loading the full doc. Docs are self-contained; load one at a time.
+
 ## Key Conventions
 
 - **`.eng/` is gitignored.** It's local working memory. Use `includeIgnoredFiles: true` or terminal commands when searching `.eng/` content.

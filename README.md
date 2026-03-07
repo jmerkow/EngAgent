@@ -40,6 +40,10 @@ What makes EngAgent different:
 | **Hooks** | PreCompact | Checkpoint before context compaction. Flushes objectives and decisions to disk |
 | **Instructions** | [`preferences.instructions.md`](src/instructions/preferences.instructions.md) | Universal coding preferences: style, naming, git conventions |
 
+## The Library
+
+[`docs/the-library/`](docs/the-library/README.md) is a curated knowledge base on AI agent frameworks, VS Code Copilot customization, and cross-cutting patterns. Built from research conducted while developing EngAgent — distilled into self-contained docs that anyone can read.
+
 ## How It Works
 
 There are a few layers, but they're all just markdown files:
