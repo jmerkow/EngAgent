@@ -1,6 +1,7 @@
 ---
 name: journal
 description: Log work events to the journal. Use when capturing meetings, decisions, tasks, corrections, or any work activity. Also use when the user narrates what happened — extract events and log them.
+argument-hint: 'Tell me what happened...'
 ---
 
 # Work Journal
@@ -52,15 +53,9 @@ Built-in: `meeting`, `decision`, `task`, `note`, `correction`, `blocked`, `impor
 
 ## Configuration
 
-The journal directory is resolved in this order:
+The script auto-detects where to write on first use and remembers the choice. No manual setup needed.
 
-1. **`.journal` file** in workspace root — one line, just the path (e.g., `.eng/journal`). Primary mechanism.
-2. **`.eng/` directory** exists — uses `.eng/journal/`, writes `.journal` file to pin it.
-3. **Fallback** — uses `.journals/`, writes `.journal` file to pin it.
-
-On first use, if no `.journal` file exists, journal.py auto-detects and writes one so the path is stable going forward.
-
-To change the journal location, edit `.journal`:
+To change the journal location later, edit the `.journal` file in the workspace root (one line, just the path):
 ```
 .journals
 ```
