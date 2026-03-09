@@ -25,3 +25,15 @@ config.json                   # Local config (install dir, tool injection)
 
 - **`.eng/` is gitignored.** It's local working memory. Use `includeIgnoredFiles: true` or terminal commands when searching `.eng/` content.
 - **Config-driven tool injection.** `config.json` can inject additional tools into agent frontmatter at build time (wildcard `*` or per-agent). Use `excludeTools` to remove tools from specific agents (e.g., leaf agents that shouldn't spawn subagents).
+
+## Skills
+
+| Skill | Purpose | Key Files |
+|-------|---------|-----------|
+| `eng-check` | Validate `.eng/` documents against templates | `SKILL.md` |
+| `eng-docs` | Engineering documentation registry — file types, schemas, naming | `SKILL.md`, `references/` (templates, conventions) |
+| `eng-orchestration` | Delegation conventions for parent/subagents | `SKILL.md` |
+| `eng-push` | Git-based sync for `.eng/` directories (EngDirs) | `SKILL.md`, `scripts/init-engdirs.sh`, `scripts/pre-commit` |
+| `eng-retro` | Session retrospectives — mistakes, gaps, positives | `SKILL.md`, `references/` (template, categories) |
+| `eng-workflow` | Workflow phases, status values, gate checklists | `SKILL.md` |
+| `journal` | Append-only work event log — meetings, decisions, tasks, blockers | `SKILL.md`, `scripts/journal.py`, `references/agent-snippet.md` |
