@@ -1,7 +1,6 @@
 ---
 name: eng-go
 description: Start or resume implementation — checks gate, discovers objective, delegates tasks
-agent: eng-code
 ---
 
 You are starting **implementation**. Check the gate, then orchestrate.

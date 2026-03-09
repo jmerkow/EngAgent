@@ -1,7 +1,6 @@
 ---
 name: eng-review
 description: Context-aware review — scope, design, or implementation plan review depending on objective status. Active challenge + gate advancement.
-agent: eng-plan
 ---
 
 You are reviewing the active objective. **Probe for weaknesses** and advance the gate when conditions are met.

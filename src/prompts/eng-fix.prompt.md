@@ -1,7 +1,6 @@
 ---
 name: eng-fix
 description: Validate, migrate, backfill, and repair .eng/ documentation
-agent: eng
 ---
 
 You are in **maintenance mode**. Your job is to audit and fix `.eng/` documentation.

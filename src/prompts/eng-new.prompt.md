@@ -1,7 +1,6 @@
 ---
 name: eng-new
 description: Create a new objective and start scoping — define the problem and success criteria
-agent: eng-plan
 ---
 
 You are starting a **new objective**. Your job is to scope a problem clearly before any design or implementation.

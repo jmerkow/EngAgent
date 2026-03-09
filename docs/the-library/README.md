@@ -32,13 +32,13 @@ This library was built using an AI research agent ([EngAgent](../../README.md)) 
 
 Lead with insight, not reproduction. Cross-reference existing docs — don't duplicate.
 
-**Where it goes:** `projects/` for external repos, `vscode/` for VS Code Copilot features (VS Code-specific only for now), `patterns/` for cross-cutting patterns across 2+ frameworks.
+**Where it goes:** `projects/` for external repos and frameworks, `platforms/copilot/` for GitHub Copilot features across VS Code, CLI, and GitHub.com, `patterns/` for cross-cutting patterns across 2+ frameworks, `landscape/` for domain surveys expected to evolve.
 
 **Style:** Be concise. Separate patterns from implementation — pattern docs describe the general principle and cite frameworks; project docs go deep on one project's details. Don't reproduce reference material — summarize what matters, link out. Every doc should be self-contained for a reader who hasn't seen the rest.
 
 **Required structure:** `# Title` → blockquote description + `**Key concepts:**` → `## Overview` (first) → topic sections → `## References` → `## See Also` (last). Project docs add a badge line and `Platforms:` between the title and blockquote.
 
-**References:** Only link to things a reader can actually check — other the-library docs, web URLs, official documentation. No internal `.eng/` files, findings, or local-only paths.
+**References:** Only link to things a reader can actually check — other `the-library` docs, web URLs, official documentation. No internal `.eng/` files, findings, or local-only paths.
 
 ### Checklist
 

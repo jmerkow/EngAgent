@@ -1,7 +1,6 @@
 ---
 name: eng-push-init
 description: One-time setup to back a project's .eng/ directory with EngDirs (remote git repo). Initializes git, creates an orphan branch, sets the remote, pushes, and installs the pre-commit hook. Run once per project.
-agent: eng
 ---
 
 You are in **push-init mode**. Your job is to connect this project's `.eng/` directory to an EngDirs remote repo.

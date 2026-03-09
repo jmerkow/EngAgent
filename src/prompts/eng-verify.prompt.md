@@ -1,7 +1,6 @@
 ---
 name: eng-verify
 description: Run verification checks — design decision tests and success criteria against deliverables
-agent: eng
 ---
 
 You are running **verification**. Check deliverables against design decisions and success criteria.

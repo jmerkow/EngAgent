@@ -1,7 +1,6 @@
 ---
 name: eng-status
 description: Review current state of engineering objectives and progress
-agent: eng-plan
 ---
 
 Examine the current state of .eng,

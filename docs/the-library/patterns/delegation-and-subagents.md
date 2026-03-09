@@ -1,7 +1,13 @@
+---
+title: Delegation and Subagents
+description: Cross-framework patterns for multi-agent delegation — thin orchestrators, context isolation, structured returns, prompt design, parallel fan-out, tool restriction cascading, and anti-patterns. Grounded in GSD, Squad, Anthropic, and VS Code Copilot implementations.
+topics: [delegation, subagents, orchestration, thin-orchestrator, context-isolation, structured-returns, parallel-execution, coordinator-pattern]
+---
+
 # Delegation and Subagents
 
-> Cross-framework patterns for multi-agent delegation — thin orchestrators, context isolation, structured returns, prompt design, parallel fan-out, tool restriction cascading, and anti-patterns. Grounded in GSD, Squad, Anthropic, and VS Code Copilot implementations.
->
+> **Topics:** delegation, subagents, orchestration, thin orchestrator, context isolation, structured returns, parallel execution
+> **Useful when:** designing multi-agent workflows, deciding when to delegate vs. answer directly, structuring delegation prompts, building coordinator agents, managing tool permissions across agent hierarchies, preventing delegation anti-patterns
 > **Key concepts:** thin orchestrator, fat workers, context isolation boundary, structured status protocol (COMPLETE/PARTIAL/BLOCKED), delegation prompt template, response mode tiering, wave-based execution, file authorization, tool restriction cascading
 
 ## Overview
@@ -10,8 +16,8 @@ Every multi-agent framework faces the same core question: **when should an agent
 
 This document catalogs cross-framework delegation patterns grounded in concrete implementations. The patterns come from five primary sources:
 
-- **GSD** (~25k stars) — fresh-context-per-task execution with thin orchestrators and wave-based parallelism. See [GSD](../projects/gsd.md).
-- **Squad** (~660 stars) — persistent specialist teams coordinated by a thin routing layer. See [Squad](../projects/squad.md).
+- **GSD** (~25k stars) — fresh-context-per-task execution with thin orchestrators and wave-based parallelism. See [GSD](../frameworks/gsd.md).
+- **Squad** (~660 stars) — persistent specialist teams coordinated by a thin routing layer. See [Squad](../frameworks/squad.md).
 - **Anthropic** ("Building Effective Agents") — architectural patterns for routing, parallelization, and orchestrator-workers.
 - **VS Code Copilot** — the `agent/runSubagent` tool, context isolation boundary, and hook-based context injection. See [Subagents and Delegation](../vscode/subagents-and-delegation.md).
 - **CrewAI** (v1.10) — typed state pipelines, `@router` runtime classification, and hierarchical process orchestration.
@@ -37,7 +43,11 @@ flowchart LR
 
 The orchestrator holds routing logic, delegates work, and synthesizes results. It consumes minimal context — Squad's coordinator is deliberately lightweight, leaving the bulk of the 200K window for workers. Workers are specialized agents, each with a clean context window. The heavy implementation work always happens in worker contexts.
 
-GSD keeps orchestrators at 15–40% context; workers get fresh 200K windows in dependency-ordered waves ([GSD](../projects/gsd.md)). Squad routes through seven rules to named specialists, effectively multiplying total context ([Squad](../projects/squad.md)). Anthropic frames this as the orchestrator-workers pattern, one of five architectural patterns in "Building Effective Agents."
+**GSD's implementation:** Prompts serve as orchestrators (~15% context). Agent files are fat workers with domain expertise. Four parallel researchers fan out for research; a planner creates atomic task plans; executors run in dependency-ordered waves; a verifier checks results. The orchestrator stays at 30–40% context usage while workers consume fresh 200K windows. ([GSD](../frameworks/gsd.md))
+
+**Squad's implementation:** The coordinator agent (`squad.agent.md`) holds seven routing rules and agent charters. It delegates to named specialists (lead, frontend, backend, tester, scribe), each running in their own 200K context window. Fanning out to 5 agents effectively gives ~1M total tokens with zero shared context bloat. ([Squad](../frameworks/squad.md))
+
+**Anthropic's framing:** The orchestrator-workers pattern is one of five architectural patterns in "Building Effective Agents." The orchestrator generates subtask prompts, delegates to workers, and synthesizes results. Workers can be different models — Opus for reasoning-heavy work, Haiku for mechanized tasks.
 
 **The threshold rule.** GSD's practical heuristic: "For tasks with 3+ distinct subtasks, consider spawning subagents with fresh context." This isn't a hard rule — it's a signal. The stronger signal that you *should* have delegated: the parent starts forgetting earlier decisions, repeating research, or producing lower-quality output (context degradation at 50–70% usage).
 
@@ -62,7 +72,23 @@ The delegation boundary is a **hard context wall**. Understanding what crosses i
 
 ### What Crosses the Boundary
 
-The delegation boundary is a hard context wall. Subagents receive only what the parent explicitly provides and return summaries, not exploration noise — a subagent that explores 50 files returns a 200-token summary, not 50K tokens. See [Subagents and Delegation](../vscode/subagents-and-delegation.md) for VS Code-specific boundary mechanics.
+In VS Code Copilot's subagent system:
+
+| Crosses to subagent | Does NOT cross |
+|---|---|
+| The task prompt from the parent | Conversation history |
+| `additionalContext` from SubagentStart hook | Parent agent's `.agent.md` instructions |
+| Named agent's own instructions (if using a custom agent) | `.instructions.md` files from the parent session |
+| Named agent's own tools/model config | `copilot-instructions.md` from the workspace |
+| | Results from sibling subagents |
+
+| Crosses back to parent | Does NOT cross back |
+|---|---|
+| Final result summary | Intermediate tool calls |
+| | Files read during exploration |
+| | Dead ends and failed approaches |
+
+This means a subagent that explores 50 files and hits 3 dead ends returns a 200-token summary, not 50K tokens of exploration noise. The context boundary is both the primary feature (clean context per subtask) and the primary constraint (subagents are blind to everything the parent knows unless explicitly told).
 
 ### Fresh Context Per Task (GSD) vs. Persistent Specialists (Squad)
 
@@ -89,11 +115,19 @@ flowchart LR
     end
 ```
 
-**GSD** treats accumulated context as a liability — each executor starts fresh. **Squad** treats it as an asset — specialists persist knowledge across sessions. Both models work. GSD optimizes against **context rot**; Squad optimizes against **cold starts**. Choose based on your dominant failure mode. See [GSD](../projects/gsd.md) and [Squad](../projects/squad.md) for implementation mechanics.
+**GSD** treats accumulated context as a liability. Each executor gets a fresh 200K-token window with precisely the information it needs. Quality stays high (well above the 35%-remaining warning zone). The trade-off: no learning across tasks. Every executor starts cold. ([GSD](../frameworks/gsd.md))
+
+**Squad** treats accumulated context as an asset. Each specialist writes what they learned to `history.md` after every session. Decisions accumulate in `decisions.md`. Skills emerge from real work. The trade-off: memory systems bloat over time — Squad mitigates this with Scribe-enforced limits and the `squad nap` hygiene command. ([Squad](../frameworks/squad.md))
+
+Both models work. GSD optimizes against **context rot**. Squad optimizes against **cold starts** (the cost of re-establishing context every session). Choose based on your dominant failure mode.
 
 ### Context Injection via Hooks
 
-**Context must be explicitly injected at delegation time.** Every framework solves this differently — hooks, pre-loaded documents, plan-as-prompt — but the principle is universal: relying on inherited context or "the agent will figure it out" produces hallucinations. See [Subagents and Delegation](../vscode/subagents-and-delegation.md) for VS Code's hook-based approach and [GSD](../projects/gsd.md) / [Squad](../projects/squad.md) for structural alternatives.
+VS Code's SubagentStart hook (Preview) bridges the isolation gap. A hook script fires when a subagent spawns and injects `additionalContext` — project state, coding conventions, active objectives — into the subagent's context. This directly addresses the "subagent hallucination problem": subagents making decisions without project context.
+
+Squad achieves the same effect structurally: every agent reads `decisions.md` before starting work, because each spawn gets a fresh context with `decisions.md` loaded. GSD achieves it through plan-as-prompt: the plan document *is* the executor's prompt, containing all context the executor needs.
+
+The approaches converge on the same principle: **context must be explicitly injected at delegation time**. Relying on inherited context, shared memory, or "the agent will figure it out" produces hallucinations.
 
 ## Structured Returns
 
@@ -177,7 +211,20 @@ throw raw strings instead.
 
 ## Response Mode Tiering
 
-Not every request deserves a full multi-agent spawn. The critical insight: **match delegation depth to request complexity.** Don't spawn an agent for something the coordinator already knows. Anthropic achieves this via routing classifiers; Squad via four explicit tiers; GSD via a "quick mode" opt-out.
+Not every request deserves a full multi-agent spawn. Squad formalizes this with four tiers:
+
+| Mode | Latency | Behavior | Example |
+|---|---|---|---|
+| **Direct** | ~2–3s | Coordinator answers from memory | "What port does the server run on?" |
+| **Lightweight** | ~8–12s | One agent, minimal prompt | "Add a TODO comment to auth.ts" |
+| **Standard** | ~25–35s | Full agent spawn with context | "Implement the login endpoint" |
+| **Full** | ~40–60s | Multi-agent parallel spawn | "Build the user dashboard feature" |
+
+The critical insight is **Rule 3: Quick facts → answer directly.** Don't spawn an agent for something the coordinator already knows.
+
+Anthropic's routing pattern achieves the same effect architecturally: a classifier routes easy queries to a lower-cost model for direct response, while complex queries go to a higher-cost orchestration pipeline. GSD's "quick mode" is the opt-out — skip research, planning, and verification for simple changes.
+
+The tiering heuristic maps cleanly to research workflows:
 
 | Classification | Workflow | Subagents |
 |---|---|---|
@@ -185,13 +232,26 @@ Not every request deserves a full multi-agent spawn. The critical insight: **mat
 | **Depth-first** | Standard investigation | 1–2 (5–10 tool calls total) |
 | **Breadth-first** | Parallel fan-out, comprehensive | 3–5 (15+ tool calls across subs) |
 
-See [behavioral-rules.md](behavioral-rules.md) for the autonomy zone patterns that govern when agents should escalate vs. act.
-
 ## Parallel Execution Models
 
 ### Wave-Based Execution (GSD)
 
-**Conservative parallelism:** analyze dependencies upfront, group independent tasks into ordered waves, serialize when uncertain. Each executor gets a fresh context window — a 5-plan wave effectively uses ~1M total tokens with zero shared context bloat. It sacrifices some throughput for safety. See [GSD](../projects/gsd.md) for wave grouping mechanics and dependency analysis.
+GSD groups task plans into waves based on dependency analysis:
+
+```
+Wave 1 (parallel)        Wave 2 (parallel)       Wave 3 (serial)
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│ Plan 01  │ │ Plan 02  │ │ Plan 03  │ │ Plan 04  │ │ Plan 05  │
+│ User     │ │ Product  │ │ Orders   │ │ Cart     │ │ Checkout │
+│ Model    │ │ Model    │ │ API      │ │ API      │ │ UI       │
+└──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘
+     └────────────┴───────────┘            ↑             ↑
+            Dependencies flow forward
+```
+
+Independent plans run in the same wave (parallel). Dependent plans wait in later waves. File conflicts serialize within a single plan. Each executor gets a fresh context window — a 5-plan wave effectively uses ~1M total tokens (5 × 200K) with zero shared context bloat.
+
+Wave-based execution is **conservative parallelism**: analyze dependencies upfront, group into ordered waves, serialize when uncertain. It sacrifices some throughput for safety.
 
 ### Eager Fan-Out (Squad)
 
@@ -201,13 +261,48 @@ Eager fan-out is **aggressive parallelism**: start everything that *could* be in
 
 ### Multi-Perspective Fan-Out (Anthropic / VS Code)
 
-Multiple subagents analyze the same artifact from different perspectives (correctness, security, architecture, etc.) with no anchoring between them. Context isolation is a feature: each reviewer starts fresh, with no bias from other reviewers' findings. The orchestrator synthesizes independent results into a prioritized summary. This pattern works for research fan-out and document review. See [Subagents and Delegation](../vscode/subagents-and-delegation.md) for VS Code agent configuration.
+A specialized parallel pattern: multiple subagents analyze the same artifact from different perspectives with no anchoring between them.
+
+```yaml
+# VS Code multi-perspective review pattern
+---
+name: Thorough Reviewer
+tools: ['agent', 'read', 'search']
+---
+Run each perspective as a parallel subagent:
+- Correctness reviewer: logic errors, edge cases, type issues
+- Code quality reviewer: readability, naming, duplication
+- Security reviewer: input validation, injection risks
+- Architecture reviewer: codebase patterns, design consistency
+```
+
+Context isolation is a feature here: each reviewer starts fresh, with no bias from other reviewers' findings. The orchestrator synthesizes independent results into a prioritized summary. This same pattern works for research fan-out (parallel exploration of independent sub-questions) and document review (parallel check of different quality dimensions).
 
 ## Tool Restriction Cascading
 
-**Permissions flow downward through the delegation hierarchy.** Read-only workers can't accidentally modify files during research; workers with narrow scope can use faster, cheaper models. GSD maps this to model profiles (Opus for planning, Haiku for verification). The same principle applies to agent spawning: coordinators restrict which named agents they can delegate to.
+Permissions flow downward through the delegation hierarchy via the `tools` field in agent frontmatter:
 
-**No file-level enforcement exists.** All surveyed frameworks use behavioral file authorization — the delegation prompt says which files to touch, but nothing prevents the subagent from reading or writing elsewhere. File authorization is guidance, not a security boundary. See [Subagents and Delegation](../vscode/subagents-and-delegation.md) for VS Code-specific tool and agent field configuration.
+```mermaid
+flowchart TB
+    C["Coordinator<br/>tools: agent, edit, search, read"]
+    P["Planner<br/>tools: read, search"]
+    I["Implementer<br/>tools: edit, read, search"]
+    R["Reviewer<br/>tools: read, search"]
+
+    C -->|plan task| P
+    C -->|code task| I
+    C -->|review task| R
+
+    style P fill:#e8f5e9
+    style R fill:#e8f5e9
+    style I fill:#fff3e0
+```
+
+Workers with read-only tools (`read`, `search`) can't accidentally modify files during research. Workers with narrow scope can use faster, cheaper models since they have focused tasks. GSD maps this to model profiles: planners get the strongest model (Opus), executors get a capable model (Sonnet), verifiers get the cheapest (Haiku).
+
+The `agents` field on a coordinator restricts which named agents it can spawn as subagents. Setting `agents: ['Planner', 'Implementer']` means the coordinator can only delegate to those two — not to arbitrary agents. Combined with `disable-model-invocation: true` on workers, this creates "protected" agents accessible only through explicit whitelisting.
+
+**No file-level enforcement exists.** All surveyed frameworks (GSD, Squad, dhar174, VS Code) use behavioral file authorization — the delegation prompt says which files to touch, but nothing prevents the subagent from reading or writing elsewhere. File authorization is guidance, not a security boundary.
 
 ## Nesting Depth
 
@@ -310,9 +405,8 @@ If any test returns yes, delegation is likely the right call. If all return no, 
 
 ## See Also
 
-- [GSD](../projects/gsd.md) — deep dive on fresh-context-per-task execution, wave parallelism, deviation rules, and model profiles
-- [Squad](../projects/squad.md) — deep dive on persistent specialists, memory system, reviewer protocol, and Ralph
+- [GSD](../frameworks/gsd.md) — deep dive on fresh-context-per-task execution, wave parallelism, deviation rules, and model profiles
+- [Squad](../frameworks/squad.md) — deep dive on persistent specialists, memory system, reviewer protocol, and Ralph
 - [Subagents and Delegation](../vscode/subagents-and-delegation.md) — VS Code Copilot-specific mechanics: `runSubagent` tool, hook integration, scope control
 - [context-and-persistence.md](context-and-persistence.md) — how frameworks handle state across sessions and delegation boundaries
 - [behavioral-rules.md](behavioral-rules.md) — autonomy zones, deviation rules, and constraint patterns that govern delegated agents
-- [Claude Cookbooks](../projects/claude-cookbooks.md) — Anthropic's cookbook with sub-agent patterns, tool restrictions, and prompt caching

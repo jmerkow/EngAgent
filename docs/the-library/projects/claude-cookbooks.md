@@ -9,18 +9,18 @@ Platforms: Claude Code, Claude API, Claude.ai
 
 ## Overview
 
-[`anthropics/claude-cookbooks`](https://github.com/anthropics/claude-cookbooks) is Anthropic's official cookbook of tutorials and reference implementations for Claude. The repo covers the Claude API surface: agentic patterns, tool use, context management, extended thinking, multimodal capabilities, and third-party integrations.
+[`anthropics/claude-cookbooks`](https://github.com/anthropics/claude-cookbooks) is Anthropic's official cookbook of tutorials and reference implementations for Claude. The repo covers the Claude API surface: agentic patterns, tool use, context management, extended thinking, multimodal capabilities, and third-party integrations [1].
 
 The repo serves two distinct purposes:
 
 1. **Tutorial collection** — copy-paste-ready notebooks teaching Claude API patterns, from basic tool calling to multi-agent orchestration
 2. **Self-referential production example** — the `.claude/` directory shows how Anthropic configures Claude Code to manage the repo itself, with slash commands, agents, skills, and automated PR workflows
 
-The second purpose is the more valuable one for agent designers. The `.claude/` configuration is a working example of command-level tool restrictions, subagent delegation, structured review automation, and quality enforcement at scale. Every cookbook is tracked in a `registry.yaml` with metadata, validated by a four-layer hierarchy from structural checks to qualitative scoring rubrics.
+The second purpose is the more valuable one for agent designers. The `.claude/` configuration is a working example of command-level tool restrictions, subagent delegation, structured review automation, and quality enforcement at scale. Every cookbook is tracked in a `registry.yaml` with metadata, validated by a four-layer hierarchy from structural checks to qualitative scoring rubrics [1].
 
 ## Agentic Design Patterns
 
-The `patterns/agents/` directory contains the official reference implementation for Anthropic's ["Building Effective Agents"](https://www.anthropic.com/research/building-effective-agents) blog post. These are the canonical patterns.
+The `patterns/agents/` directory contains the official reference implementation for Anthropic's ["Building Effective Agents"](https://www.anthropic.com/research/building-effective-agents) blog post [2]. These are the canonical patterns [1].
 
 ### Foundation
 
@@ -29,7 +29,7 @@ Two functions form the minimal building blocks for every workflow:
 - **`llm_call(prompt, system_prompt, model)`** — single API call wrapper
 - **`extract_xml(text, tag)`** — regex-based XML tag extractor
 
-XML tags are the universal structured output mechanism across the entire repo. Every multi-step pattern uses them for inter-step communication.
+XML tags are the universal structured output mechanism across the entire repo [1]. Every multi-step pattern uses them for inter-step communication.
 
 ### Pattern Catalog
 
@@ -43,7 +43,7 @@ XML tags are the universal structured output mechanism across the entire repo. E
 
 ### Research Agent System
 
-The most production-quality content in the repo. Two prompt files define a complete multi-agent research system:
+The most production-quality content in the repo. Two prompt files define a complete multi-agent research system [1]:
 
 **Lead agent** (`research_lead_agent.md`):
 - Structured reasoning: assessment → classification → planning → execution
@@ -60,7 +60,7 @@ The most production-quality content in the repo. Two prompt files define a compl
 
 ### Agent SDK Tutorials
 
-Three progressive notebooks in `claude_agent_sdk/`:
+Three progressive notebooks in `claude_agent_sdk/` [1]:
 
 | Notebook | Pattern | Key Technique |
 |---|---|---|
@@ -68,7 +68,7 @@ Three progressive notebooks in `claude_agent_sdk/`:
 | 01: Chief of Staff | Multi-agent orchestration | `allowed_tools=["Task"]` for subagent delegation |
 | 02: Observability | MCP server integration | GitHub MCP (100+ tools), Git MCP (13+ tools) |
 
-The Chief of Staff notebook demonstrates: CLAUDE.md for persistent instructions, hooks for compliance tracking, plan mode for strategic planning without execution, and custom slash commands.
+The Chief of Staff notebook demonstrates: CLAUDE.md for persistent instructions, hooks for compliance tracking, plan mode for strategic planning without execution, and custom slash commands [1].
 
 ## How Anthropic Configures Claude Code
 
@@ -76,21 +76,21 @@ The `.claude/` directory is the most instructive part of the repo — it shows h
 
 ### CLAUDE.md Project Configuration
 
-The `CLAUDE.md` configures code style (Ruff, line length 100), dependency management (uv-only), notebook conventions (keep outputs, one concept per notebook), and git workflow (conventional commits). See the [repo's CLAUDE.md](https://github.com/anthropics/claude-cookbooks/blob/main/CLAUDE.md) for the full configuration.
+The `CLAUDE.md` configures code style (Ruff, line length 100), dependency management (uv-only), notebook conventions (keep outputs, one concept per notebook), and git workflow (conventional commits) [3]. See the [repo's CLAUDE.md](https://github.com/anthropics/claude-cookbooks/blob/main/CLAUDE.md) for the full configuration.
 
 ### Command-Level Tool Restrictions
 
-Every slash command declares exact tool access in `allowed-tools` frontmatter. The principle is **least-privilege via Bash glob patterns** — each command gets exactly the shell operations its workflow requires. For example:
+Every slash command declares exact tool access in `allowed-tools` frontmatter [4]. The principle is **least-privilege via Bash glob patterns** — each command gets exactly the shell operations its workflow requires. For example:
 
 - `/notebook-review` can run `Bash(gh pr comment:*)` and `Bash(gh pr diff:*)` but not arbitrary shell commands
 - `/review-pr` adds `Task` (for subagent delegation) and `AskUserQuestion` (for human-in-the-loop confirmation)
 - `/review-pr-ci` is identical to `/review-pr` minus `AskUserQuestion` — the deployability gradient pattern
 
-See the [repo's `.claude/commands/`](https://github.com/anthropics/claude-cookbooks/tree/main/.claude/commands) for the full set of 7 commands and their tool restrictions.
+See the [repo's `.claude/commands/`](https://github.com/anthropics/claude-cookbooks/tree/main/.claude/commands) for the full set of 7 commands and their tool restrictions [4].
 
 ### Three-Level Delegation Chain
 
-The PR review workflow reveals a three-level architecture where each level operates with tighter constraints than the one above:
+The PR review workflow reveals a three-level architecture where each level operates with tighter constraints than the one above [1]:
 
 ```mermaid
 flowchart TD
@@ -112,11 +112,11 @@ flowchart TD
 | **Agent** | Specialist analysis (code-reviewer.md) | Read, Grep, Glob, Bash, `Bash(git status:*)` |
 | **Tools** | Primitives | Each glob-restricted to specific operations |
 
-The command orchestrates; the agent analyzes; tools execute. The agent has general `Bash` access but no GitHub CLI tools — only the command can post to GitHub. The command decides what to do with the agent's findings.
+The command orchestrates; the agent analyzes; tools execute. The agent has general `Bash` access but no GitHub CLI tools — only the command can post to GitHub. The command decides what to do with the agent's findings [4].
 
 ### Interactive vs CI Command Split
 
-`/review-pr` and `/review-pr-ci` are the same workflow with one key difference: the CI version removes `AskUserQuestion` and auto-posts the review.
+`/review-pr` and `/review-pr-ci` are the same workflow with one key difference: the CI version removes `AskUserQuestion` and auto-posts the review [4].
 
 | Mode | Includes `AskUserQuestion` | Behavior |
 |---|---|---|
@@ -127,7 +127,7 @@ This establishes a **deployability gradient** — identical logic with different
 
 ### Code Reviewer Agent
 
-The `.claude/agents/code-reviewer.md` defines a full senior engineer persona:
+The `.claude/agents/code-reviewer.md` defines a full senior engineer persona [1]:
 
 - **Checklist:** comprehensive review covering intro quality, prerequisites, code quality, Python patterns, package management, testing, security, CI/CD, commits, conclusions, and repo-specific patterns
 - **Anti-pattern detection** for common cookbook mistakes
@@ -136,18 +136,18 @@ The `.claude/agents/code-reviewer.md` defines a full senior engineer persona:
 
 ### Dynamic Validation Against Live Documentation
 
-The `/model-check` command fetches the current model list from a live URL at runtime:
+The `/model-check` command fetches the current model list from a live URL at runtime [4]:
 
 ```
 First, fetch the current list of allowed models from:
 https://docs.claude.com/en/docs/about-claude/models/overview.md
 ```
 
-It then validates that all model references use current public models, flags deprecated versions, flags internal names, and suggests `-latest` aliases for maintainability. The constraint evolves without changing the command — dynamic validation against an authoritative source rather than a hardcoded list.
+It then validates that all model references use current public models, flags deprecated versions, flags internal names, and suggests `-latest` aliases for maintainability [4]. The constraint evolves without changing the command — dynamic validation against an authoritative source [6] rather than a hardcoded list.
 
 ## Issue Triage Taxonomy
 
-The `/review-issue` command defines a complete classification system for community management:
+The `/review-issue` command defines a complete classification system for community management [4]:
 
 | Type | Action |
 |---|---|
@@ -160,11 +160,11 @@ The `/review-issue` command defines a complete classification system for communi
 
 Labels: `bug`, `enhancement`, `question`, `documentation`, `duplicate`, `wontfix`, `good first issue`.
 
-Tone guidelines from the command: *"Be professional, friendly, and concise. Be direct but not dismissive when declining proposals. Don't over-explain or be overly apologetic."*
+Tone guidelines from the command: *"Be professional, friendly, and concise. Be direct but not dismissive when declining proposals. Don't over-explain or be overly apologetic."* [4]
 
 ## Cookbook Audit Skill
 
-The `.claude/skills/cookbook-audit/` directory contains a structured quality rubric:
+The `.claude/skills/cookbook-audit/` directory contains a structured quality rubric [1]:
 
 - **`SKILL.md`** — comprehensive audit instructions
 - **`style_guide.md`** — canonical templates with good/bad examples
@@ -175,7 +175,7 @@ The `.claude/skills/cookbook-audit/` directory contains a structured quality rub
 
 ## Registry System
 
-Every published cookbook is tracked in `registry.yaml` with structured metadata:
+Every published cookbook is tracked in `registry.yaml` with structured metadata [1]:
 
 ```yaml
 - title: "Cookbook Title"
@@ -190,11 +190,11 @@ Every published cookbook is tracked in `registry.yaml` with structured metadata:
 
 An `authors.yaml` maps contributor handles to display names and avatar URLs (defaulting to `https://github.com/<username>.png`).
 
-The `/add-registry` command automates metadata entry: read the notebook → check author in `authors.yaml` → generate registry entry → show for user approval → append maintaining alphabetical order.
+The `/add-registry` command automates metadata entry [4]: read the notebook → check author in `authors.yaml` → generate registry entry → show for user approval → append maintaining alphabetical order.
 
 ## Four-Layer Validation Hierarchy
 
-The repo validates content through four progressively deeper layers:
+The repo validates content through four progressively deeper layers [1]:
 
 ```mermaid
 flowchart LR
@@ -215,13 +215,13 @@ flowchart LR
 | **Functional** | `test_notebooks.py` (pytest + tox) | Notebooks execute without errors |
 | **Qualitative** | Cookbook-audit skill | 20-point rubric: narrative, code, accuracy, actionability |
 
-The first three layers are automated in CI. The fourth is applied by Claude through the audit skill.
+The first three layers are automated in CI. The fourth is applied by Claude through the audit skill [1].
 
 ## Tool Use Patterns
 
 ### Core Patterns
 
-The repo includes 8 tool-use notebooks covering the full spectrum from basic tool definition to advanced patterns. The most transferable:
+The repo includes 8 tool-use notebooks covering the full spectrum from basic tool definition to advanced patterns [5]. The most transferable:
 
 | Notebook | Pattern |
 |---|---|
@@ -233,15 +233,15 @@ See the [`tool_use/` directory](https://github.com/anthropics/claude-cookbooks/t
 
 ### Tool Search with Embeddings
 
-`tool_search_with_embeddings.ipynb` — when you have thousands of tools, embed descriptions and search for relevant ones, passing only top-k matches to Claude. Scales tool access beyond the context window limit.
+`tool_search_with_embeddings.ipynb` — when you have thousands of tools, embed descriptions and search for relevant ones, passing only top-k matches to Claude [1]. Scales tool access beyond the context window limit.
 
 ### Memory Tool
 
-Production-ready implementation in `memory_tool.py`:
+Production-ready implementation in `memory_tool.py` [1]:
 - File-based storage at `/memories/` path
 - CRUD commands: `view`, `create`, `str_replace`, `insert`, `delete`, `rename`
 - Path validation prevents directory traversal attacks
-- Cross-session learning demonstrated across three sessions: learn patterns → store → apply in new session → manage context growth in long session
+- Cross-session learning demonstrated across three sessions: learn patterns → store → apply in new session → manage context growth in long session [1]
 
 ## Context Window Management
 
@@ -253,13 +253,13 @@ Three complementary approaches — a distinctive strength of the cookbook:
 compaction_control={"enabled": True, "context_token_threshold": 5000}
 ```
 
-Pauses when tokens exceed threshold → injects summary request → Claude generates summary → clears history, keeps summary → continues. **21% token savings** demonstrated on a 5-ticket processing pipeline.
+Pauses when tokens exceed threshold → injects summary request → Claude generates summary → clears history, keeps summary → continues. **21% token savings** demonstrated on a 5-ticket processing pipeline [1].
 
 Threshold guidelines: Low (5–20k) for iterative processing, Medium (50–100k) for multi-phase workflows, High (100k+) for context-heavy tasks.
 
 ### 2. Proactive Session Memory
 
-Background threading pattern: `InstantCompactingChatSession` builds memory in background after each turn, swapping instantly when context limit is hit. **88% token reduction** (12,847 → 1,526 tokens) with instant swap vs 40+ seconds for reactive compaction.
+Background threading pattern: `InstantCompactingChatSession` builds memory in background after each turn, swapping instantly when context limit is hit. **88% token reduction** (12,847 → 1,526 tokens) with instant swap vs 40+ seconds for reactive compaction [1].
 
 ### 3. Context Editing (API-Level)
 
@@ -277,11 +277,11 @@ context_management = {
 }
 ```
 
-Automatically clears old thinking blocks and tool results at thresholds, preserving long-term memory files.
+Automatically clears old thinking blocks and tool results at thresholds, preserving long-term memory files [1].
 
 ## Command Output Format Conventions
 
-A consistent format across all review commands:
+A consistent format across all review commands [4]:
 
 ```markdown
 ### PR Review
@@ -313,7 +313,7 @@ Design decisions:
 - **Checkboxes** for trackable actionable items
 - **Collapsible `<details>`** for noise reduction on GitHub
 - **Code snippets instead of cell numbers** for Jupyter references (cells can shift)
-- `gh pr review` produces no output on success — documented to prevent unnecessary retries
+- `gh pr review` produces no output on success — documented to prevent unnecessary retries [4]
 
 ## Cross-Cutting Design Principles
 
@@ -332,15 +332,16 @@ The cookbook embeds consistent philosophies across all content:
 - **Agent loops with `stop_reason` checking** — process tool_use blocks, return results, loop
 - **Background threading** for non-blocking operations (session memory updates)
 - **Token-threshold triggers** for context management transitions
-- **Subagent delegation via `Task` tool** — both in Agent SDK and Claude Code commands
+- **Subagent delegation via `Task` tool** — both in Agent SDK and Claude Code commands [1]
 
 ## References
 
-- [anthropics/claude-cookbooks](https://github.com/anthropics/claude-cookbooks) — primary repository
-- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) — Anthropic blog post; the `patterns/agents/` directory is the reference implementation
-- [Claude API documentation](https://docs.claude.com/) — official API docs
-- [Anthropic developer documentation](https://docs.claude.com/claude/docs/guide-to-anthropics-prompt-engineering-resources) — prompt engineering resources
-- [Anthropic Discord](https://www.anthropic.com/discord) — community support
+[1] [anthropics/claude-cookbooks](https://github.com/anthropics/claude-cookbooks) — primary repository
+[2] [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) — Anthropic blog post; `patterns/agents/` is the reference implementation
+[3] [CLAUDE.md](https://github.com/anthropics/claude-cookbooks/blob/main/CLAUDE.md) — project configuration
+[4] [.claude/commands/](https://github.com/anthropics/claude-cookbooks/tree/main/.claude/commands) — slash commands with tool restrictions
+[5] [tool_use/](https://github.com/anthropics/claude-cookbooks/tree/main/tool_use) — tool use notebooks
+[6] [Claude API documentation](https://docs.claude.com/) — official API docs
 
 ## See Also
 
@@ -349,4 +350,4 @@ The cookbook embeds consistent philosophies across all content:
 - [gsd.md](gsd.md) — GSD framework; shares the fresh-context-per-task philosophy and research budgets
 - [../patterns/delegation-and-subagents.md](../patterns/delegation-and-subagents.md) — delegation patterns; the three-level chain is a concrete implementation
 - [../patterns/behavioral-rules.md](../patterns/behavioral-rules.md) — behavioral constraint patterns; the anti-pattern catalog and tone guidelines are examples
-- [../vscode/hooks-and-lifecycle.md](../vscode/hooks-and-lifecycle.md) — hooks and lifecycle; the CI command split is a related deployability gradient pattern
+- [../platforms/copilot/hooks-and-lifecycle.md](../platforms/copilot/hooks-and-lifecycle.md) — hooks and lifecycle; the CI command split is a related deployability gradient pattern

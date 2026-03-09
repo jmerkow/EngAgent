@@ -1,7 +1,6 @@
 ---
 name: eng-retro-analysis
 description: Cross-session pattern analysis — aggregate retros from multiple .eng/ directories and produce a findings doc
-agent: eng
 ---
 
 You are in **retro analysis mode**. Your job is to read retro files across projects, identify patterns, and produce a findings doc.

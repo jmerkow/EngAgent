@@ -6,7 +6,7 @@
 
 ## Overview
 
-VS Code's AI customization system is a set of building blocks that control what the AI knows (instructions), what it can do (tools, MCP servers), how it behaves (agents), and what automations run around it (hooks). As of March 2026 (VS Code 1.109+), there are **eight building blocks**, each with distinct activation semantics:
+VS Code's AI customization system is a set of building blocks that control what the AI knows (instructions), what it can do (tools, MCP servers), how it behaves (agents), and what automations run around it (hooks). As of March 2026 (VS Code 1.109/1.110), there are **eight building blocks**, each with distinct activation semantics:
 
 | Building Block | What It Does | When It Activates |
 |---|---|---|
@@ -139,7 +139,33 @@ The most powerful hook pattern: `PreToolUse` can approve, deny, or modify any to
 
 ### Agent Plugins (Preview)
 
-Plugins bundle related agents, skills, prompts, hooks, and MCP servers into installable packages. Discoverable via marketplace. A single `plugin.json` manifest defines all bundled resources. Currently preview.
+Plugins are the **distribution format** for Copilot customizations — prepackaged bundles that can include custom agents, skills, prompt files, hooks, and MCP server configurations [1]. A single `plugin.json` manifest defines all bundled resources. Launched in preview with VS Code 1.110 (February 2026) [7], the plugin system is shared across VS Code, Copilot CLI, and the Copilot coding agent [2].
+
+**`plugin.json` format.** The manifest requires only a `name` field. Optional fields include `description`, `version`, `author`, `homepage`, `repository`, `license`, `keywords`, `category`, and `tags`. Path fields — `agents`, `skills`, `commands`, `hooks`, `mcpServers` — default to conventional subdirectories but can point to custom paths or arrays of paths [3][4]:
+
+```json
+{
+  "name": "my-plugin",
+  "description": "Workflow automation tools",
+  "version": "1.0.0",
+  "agents": "agents/",
+  "skills": ["skills/", "extra-skills/"],
+  "hooks": "hooks.json",
+  "mcpServers": ".mcp.json"
+}
+```
+
+The CLI searches for `plugin.json` in three locations: `.github/plugin/plugin.json`, `.claude-plugin/plugin.json`, and the repository root [4].
+
+**Three installation methods:**
+
+1. **CLI direct install** — `copilot plugin install owner/repo` clones and registers any GitHub repo containing a `plugin.json`. Subdirectory plugins use colon syntax: `owner/repo:path/to/plugin` [2].
+2. **VS Code local registration** — `chat.plugins.paths` in settings maps local directory paths to enabled/disabled state [1].
+3. **Marketplace registries** — `chat.plugins.marketplaces` points to Git repos containing a `marketplace.json` registry file that lists multiple plugins [6]. Default marketplaces include `github/copilot-plugins` and `github/awesome-copilot`. VS Code also supports `@agentPlugins` search in the Extensions view [1].
+
+**Relationship to other building blocks.** Plugins are a packaging layer, not a new primitive — they bundle existing building blocks (agents, skills, prompts, hooks, MCP configs) into installable units. Deduplication follows **first-found-wins** for agents and skills (project-level files override plugin-provided ones) and **last-wins** for MCP servers [4]. VS Code extensions can also contribute skills via the `chatSkills` contribution point in `package.json`, providing an alternative distribution vector through the VS Code Marketplace [1].
+
+**Plugin management** (CLI): `copilot plugin list`, `copilot plugin update NAME`, `copilot plugin uninstall NAME` [2].
 
 ### Directory Convention Summary
 
@@ -156,6 +182,10 @@ All workspace-level customizations live under `.github/`:
 ```
 
 User-level equivalents live in the VS Code profile's `prompts/` folder (instructions + prompts) and `~/.copilot/skills/` (skills). Cross-tool compatibility paths: `.claude/rules/`, `.claude/agents/`, `.claude/skills/`.
+
+### CLI Portability
+
+Copilot CLI (GA February 25, 2026) shares the `.github/` configuration layer — instructions, agents, skills, and hooks defined in `.github/` work across both VS Code and the standalone CLI [5]. User-level configuration diverges: the CLI uses `~/.copilot/` while VS Code uses its profile system [5]. The CLI also supports plugin installation via `copilot plugin install owner/repo` [2], making plugins the most practical way to share customizations across environments. For full details on cross-platform portability, path differences, and workarounds, see [cli-and-portability.md](cli-and-portability.md).
 
 ## What We Learned
 
@@ -224,10 +254,19 @@ All URLs verified against official VS Code documentation as of March 2026.
 - [Custom Agents](https://code.visualstudio.com/docs/copilot/customization/custom-agents)
 - [MCP Servers](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
 - [Hooks](https://code.visualstudio.com/docs/copilot/customization/hooks)
-- [Agent Plugins](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)
+- [Agent Plugins](https://code.visualstudio.com/docs/copilot/customization/agent-plugins) · [1]
 - [Language Models](https://code.visualstudio.com/docs/copilot/customization/language-models)
 - [Agent Skills Open Standard](https://agentskills.io/)
 - [Awesome Copilot — Community Customizations](https://github.com/github/awesome-copilot)
+
+**New sources (numbered citations for expanded content):**
+
+- [2] [Finding and Installing Plugins for GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing) · GitHub Docs
+- [3] [Creating a Plugin for GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-creating) · GitHub Docs
+- [4] [GitHub Copilot CLI Plugin Reference](https://docs.github.com/en/copilot/reference/cli-plugin-reference) · GitHub Docs
+- [5] [GitHub Copilot CLI Is Now Generally Available](https://github.blog/changelog/2026-02-25-github-copilot-cli-is-now-generally-available/) · GitHub Changelog, February 25, 2026
+- [6] [Creating a Plugin Marketplace for GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace) · GitHub Docs
+- [7] [GitHub Copilot in VS Code v1.110 — February Release](https://github.blog/changelog/2026-03-06-github-copilot-in-visual-studio-code-v1-110-february-release/) · GitHub Changelog, March 6, 2026
 
 ## See Also
 
@@ -237,3 +276,4 @@ All URLs verified against official VS Code documentation as of March 2026.
 - [../projects/copilot-awesome.md](../projects/copilot-awesome.md) — community resource collection
 - [../projects/anthropic-skills.md](../projects/anthropic-skills.md) — Anthropic skills standard (cross-platform)
 - [../projects/spec-kit.md](../projects/spec-kit.md) — agent-agnostic specification tool with hierarchical instruction patterns
+- [cli-and-portability.md](cli-and-portability.md) — Copilot CLI, cross-platform portability, and path configuration

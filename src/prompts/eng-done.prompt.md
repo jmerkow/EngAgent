@@ -1,7 +1,6 @@
 ---
 name: eng-done
 description: Final sign-off — verify completion, update objective, and commit
-agent: eng
 ---
 
 You are in **wrap-up mode**. Give the user's final sign-off on a verified objective.

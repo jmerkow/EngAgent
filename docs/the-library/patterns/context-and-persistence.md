@@ -1,12 +1,18 @@
+---
+title: Context and Persistence
+description: Cross-framework patterns for how AI coding agents persist state, manage context windows, handle session handoffs, and maintain memory across interactions — from filesystem-as-database conventions to context budget monitoring and compression strategies.
+topics: [context-persistence, memory, state-management, session-handoff, context-engineering, filesystem-as-database, context-budget, memory-hierarchy]
+---
+
 # Context and Persistence
 
-> Cross-framework patterns for how AI coding agents persist state, manage context windows, handle session handoffs, and maintain memory across interactions — from filesystem-as-database conventions to context budget monitoring and compression strategies.
->
+> **Topics:** context persistence, memory systems, state management, session handoff, context engineering, filesystem-as-database, context budget monitoring, memory hierarchy
+> **Useful when:** designing how an agent remembers across sessions, choosing between file-based and database-backed persistence, implementing session pause/resume, managing context window degradation, understanding which instruction files are portable across tools
 > **Key concepts:** filesystem as database, section-level mutability, context health curve, memory hierarchy layers, `.continue-here.md` handoff, cross-tool compatibility matrix, freshness vs accumulation trade-off, context compression
 
 ## Overview
 
-Every AI coding agent faces the same fundamental problem: **context is ephemeral, but work is not.** A coding session produces decisions, discoveries, and progress that must survive beyond the current context window.
+Every AI coding agent faces the same fundamental problem: **context is ephemeral, but work is not.** A coding session produces decisions, discoveries, and progress that must survive beyond the current context window. (For the complementary problem — what to load *into* the context window and how to keep it healthy within a session — see [Context Engineering](context-engineering.md).)
 
 Across the frameworks surveyed (GSD, Squad, Claude Code, Copilot, Cursor, Windsurf, Cline, LangGraph, CrewAI, AutoGPT, and community projects like shariqriazz and dhar174), context persistence falls into five categories:
 
@@ -49,12 +55,23 @@ Why filesystem over databases?
 - **Git integration.** State changes show in diffs. History comes free. Branching gives you state branching.
 - **No infrastructure.** No database server, no connection strings, no schema migrations.
 
-The pattern breaks down for high-volume structured data (embeddings, checkpoints), where platform agents use databases — but for working documents (decisions, plans, progress, handoff context), filesystem persistence is sufficient and strictly simpler. See [GSD](../projects/gsd.md), [Squad](../projects/squad.md), and individual project docs for framework-specific file layouts.
+The pattern breaks down for high-volume structured data (CrewAI uses LanceDB for embeddings, LangGraph uses Postgres for checkpoints), but for the working-document use case — decisions, plans, progress tracking, handoff context — filesystem persistence is sufficient and strictly simpler.
+
+**Platform agents (LangGraph, CrewAI, AutoGPT)** use databases because they serve multi-user, multi-project, cloud-deployed scenarios where file-based state doesn't scale. **Coding agents (GSD, Squad, Copilot, Claude Code)** use files because they operate in a single-project, single-developer context where transparency matters more than query performance.
 
 
 ## State File Conventions
 
-Each framework defines its own state file vocabulary. The file names differ, but the underlying concerns are remarkably consistent: current focus, decisions, learned patterns, plans, results, and project context. Each framework's project doc lists its specific files; the pattern insight is in what the naming conventions reveal.
+Each framework defines its own state file vocabulary. The file names differ, but the underlying concerns are remarkably consistent:
+
+| Concern | GSD | Squad | dhar174 | Claude Code |
+|---|---|---|---|---|
+| **Current focus** | `STATE.md` (YAML frontmatter + body) | `now.md` (focus area + active issues) | — | Auto-memory topic files |
+| **Decisions** | `STATE.md` decisions field | `decisions.md` (team-wide) + `decisions/inbox/` | `decision-log.md` (numbered, with Context/Consequences) | `CLAUDE.md` (manual) |
+| **Learned patterns** | `{phase}-CONTEXT.md` | `{agent}/history.md` + `wisdom.md` | `.memory.md` (gotchas, patterns) | `~/.claude/projects/<proj>/memory/MEMORY.md` |
+| **Plans** | `{phase}-{N}-PLAN.md` (XML tasks) | — (delegation via coordinator) | `spec.md` (contracts) | — |
+| **Results** | `{phase}-{N}-SUMMARY.md` | `log/` (session history) | — | Session DB |
+| **Project context** | `PROJECT.md` + `REQUIREMENTS.md` | Agent charters + `decisions.md` | `repo-profile.md` | `CLAUDE.md` hierarchy |
 
 ### What the names reveal
 
@@ -71,16 +88,32 @@ No single approach is superior — each optimizes for a different workflow model
 Across the ecosystem, memory consistently organizes into four layers — from ephemeral session state to durable global knowledge:
 
 ```mermaid
-flowchart LR
-    S[Session]:::session --> P[Project]:::project --> U[User/Team]:::user --> G[Global/Platform]:::global
+flowchart TB
+    S["Session Memory<br/><i>Conversation history, in-flight decisions</i><br/>Scope: one chat session<br/>Lifetime: session duration"]
+    P["Project Memory<br/><i>CLAUDE.md, AGENTS.md, .eng/, .squad/</i><br/>Scope: one repository<br/>Lifetime: repo lifetime"]
+    U["User/Team Memory<br/><i>~/.claude/CLAUDE.md, Copilot memory, wisdom.md</i><br/>Scope: all projects for a user or team<br/>Lifetime: indefinite (with TTL/pruning)"]
+    G["Global/Platform Memory<br/><i>Org instructions, managed policies, vector stores</i><br/>Scope: organization or platform<br/>Lifetime: indefinite"]
 
-    classDef session fill:#ffeaa7
-    classDef project fill:#81ecec
-    classDef user fill:#a29bfe
-    classDef global fill:#fab1a0
+    S --> P --> U --> G
+
+    style S fill:#ffeaa7
+    style P fill:#81ecec
+    style U fill:#a29bfe
+    style G fill:#fab1a0
 ```
 
-Each layer typically moves from ephemeral/private (session) to durable/shared (global), with storage ranging from RAM and SQLite at the session level, through filesystem at the project level, to cloud APIs and vector DBs at the global level. Implementations vary widely — see [GSD](../projects/gsd.md), [Squad](../projects/squad.md), and the [Claude Code docs](../projects/anthropic-skills.md) for specific layer mappings.
+| Layer | Example implementations | Shared? | Typical storage |
+|---|---|---|---|
+| **Session** | LangGraph checkpoints, Claude conversation DB, in-memory buffers | No | RAM, SQLite, Postgres |
+| **Project** | `CLAUDE.md`, `.squad/decisions.md`, GSD `STATE.md`, `.eng/objectives/` | Via git (if committed) | Filesystem |
+| **User/Team** | `~/.claude/CLAUDE.md`, Copilot memory (28-day TTL), Squad `wisdom.md` | Personal or team-scoped | Filesystem, cloud API |
+| **Global** | Org-level instructions (GitHub, Claude managed policies), CrewAI knowledge stores | Org-wide | Cloud, vector DB |
+
+**Claude Code's hierarchy** is the most explicit implementation. It defines six distinct layers from managed org policy down to project-local instructions, each with clear override semantics. Broader layers set defaults; narrower layers override.
+
+**Squad** implements three layers explicitly: charter (identity), history (learned knowledge), decisions (team policy). The Scribe agent maintains consistency across layers by merging parallel writes.
+
+**LangGraph** separates the hierarchy into infrastructure: checkpointers (session-scoped, per-thread) and Store (cross-session, namespaced by arbitrary tuples like `(user_id, "memories")`). LangMem adds a third tier with semantic, episodic, and procedural memory types drawn from the CoALA research paper.
 
 The general principle: **the narrower the scope, the higher the priority.** This mirrors CSS specificity — and like CSS, conflicts between layers at the same specificity level are the primary source of bugs.
 
@@ -97,38 +130,81 @@ GSD introduced an elegant pattern for preventing state corruption: **tagging eac
 
 This prevents a common failure mode: an agent updating a state file and accidentally rewriting history. When the timeline section is APPEND-only, the agent can't silently drop earlier entries.
 
-The pattern applies beyond GSD. Any framework using structured state files benefits from declaring which sections overwrite, which accumulate, and which are locked. Most frameworks implement these rules implicitly (e.g., append-only decision logs, immutable charters) — codifying them as explicit conventions is low-effort, high-value. See individual project docs for framework-specific mutability mappings.
+The pattern applies beyond GSD. Any framework using structured state files benefits from declaring which sections overwrite, which accumulate, and which are locked:
+
+- **Squad's** `decisions.md` is effectively APPEND-only (the Scribe adds entries, never removes them). Agent charters are near-IMMUTABLE (identity is stable).
+- **EngAgent's** objective files have implicit mutability: Status is OVERWRITE, Decisions is APPEND-only, Timeline is APPEND-only, Tasks toggle checkboxes but text is IMMUTABLE once in-progress.
+- **dhar174's** `decision-log.md` entries have a Status field (Accepted/Deprecated/Superseded) — entries are never deleted, only status-transitioned.
+
+Codifying these implicit rules as explicit conventions is low-effort, high-value. One line per section in a template comment is sufficient.
 
 
 ## Context Health Monitoring
 
-Context windows are finite, and quality degrades as they fill. The core pattern: define threshold tiers (e.g., normal / warning / critical based on remaining context percentage) and prescribe actions at each tier — compress, outline, or dump state and start fresh.
+Context windows are finite, and quality degrades as they fill. GSD provides the most explicit model for this, using *remaining* context percentage:
 
-Two key principles emerge across frameworks:
+| Remaining Context | Quality | Recommended Action |
+|---|---|---|
+| >35% remaining | **Normal** | Proceed without modification |
+| ≤35% remaining | **Warning** | Compress context, use outlines |
+| ≤25% remaining | **Critical** | Mandatory state dump, fresh session |
 
-1. **Even well-designed memory systems bloat over time. Active pruning is necessary, not optional.** Accumulated state (decision logs, history files) grows silently until it degrades context quality. Periodic audits and compression are essential.
-2. **Don't load what you don't need.** Search-first loading (fetch relevant content on demand) and hard caps on auto-loaded memory both prevent premature context exhaustion.
+The DEBUG.md template advises: "If evidence grows very large (10+ entries), consider whether you're going in circles" — encouraging agents to recognize circular debugging loops.
 
-See [GSD](../projects/gsd.md) for threshold tables and context health tooling, [Squad](../projects/squad.md) for the v0.4.0 context audit case study.
+**Squad** takes a different approach — context is managed architecturally rather than monitored. Each specialist agent gets its own 200K-token window. The coordinator consumes ~13.2% of context; each agent spawn uses ~0.4–6%. Available working context per agent: ~78–83%.
+
+Squad's v0.4.0 context audit is instructive: `decisions.md` had bloated to ~80K tokens (40% of context). Three optimizations — decisions pruning (251→78 blocks), spawn template deduplication, init mode compression — dropped per-agent spawn cost from 41–46% to 17–23%. The lesson: **even well-designed memory systems bloat over time. Active pruning is necessary, not optional.**
+
+**Claude Code** manages context implicitly: auto-memory is capped at 200 lines loaded at session start, with topic files loaded on-demand. The 200-line limit is a form of context engineering — it forces the memory system to stay concise.
+
+**The GSD-Antigravity port** added dedicated tooling: `token-budget` (track usage), `context-compressor` (compress for efficiency), `context-fetch` (search-first loading), and `context-health-monitor` (detect degradation). These skills make context management an explicit, observable concern rather than a background worry.
 
 
 ## Session Handoff Patterns
 
 Session handoff — persisting enough state to resume work in a new context window — is one of the hardest problems in agent persistence. The challenge: capture everything a fresh agent needs without capturing so much that context is wasted on stale information.
 
-Across frameworks, three handoff patterns emerge:
+### GSD: STATE.md + .continue-here.md
 
-### Explicit Handoff File
+GSD uses `STATE.md` as the persistent cross-session bridge, with YAML frontmatter kept in sync with the document body. The session handoff flow:
 
-A structured snapshot written at pause time and read at resume time. The snapshot captures current state, completed work, remaining work, decisions, blockers, and — critically — a **"Next Action" field** that eliminates the cold-start problem of not knowing where to begin. This is the most common pattern among file-based coding agents. See [GSD](../projects/gsd.md) for `STATE.md` and `.continue-here.md` implementations.
+- **`/pause-work`** creates a structured snapshot: current position, completed work, remaining work, decisions, blockers, next action
+- **`/resume-work`** loads the snapshot to restore context in a new session
 
-### Persistent Agent State
+The GSD-for-Copilot port extended this with `.continue-here.md` — a richer per-phase handoff file:
 
-Instead of writing a handoff doc, each agent persistently accumulates knowledge (history, decisions, conventions) across sessions. On spawn, the agent reads its accumulated state and effectively "resumes" with everything it has ever learned. The trade-off: knowledge compounds but so does noise — persistent accumulation requires active curation. See [Squad](../projects/squad.md) for this approach.
+```markdown
+## Current State
+What's happening right now.
+## Completed Work
+What's done.
+## Remaining Work
+What's left.
+## Decisions Made
+Context that would be lost across sessions.
+## Blockers
+What's stuck and why.
+## Context
+One-line "vibe" — the mood of the work.
+## Next Action
+Exactly what to do first when resuming.
+```
 
-### Checkpoint/Resume
+The "Next Action" field is the key innovation — it eliminates the cold-start problem of returning to a session and not knowing where to begin.
 
-Infrastructure-level persistence of full execution state — either conversation history (Claude Code's `--continue`/`--resume`) or complete state snapshots at every step (LangGraph checkpointers). The most powerful variant enables time travel (rewinding to any previous state and forking), but requires database infrastructure. See [Claude Code docs](../projects/anthropic-skills.md) and LangGraph documentation for details.
+### Squad: Persistent Agents + decisions.md
+
+Squad sidesteps the handoff problem by making agents persistent. Each specialist writes learned knowledge to `{agent}/history.md` after every session. Team decisions accumulate in `decisions.md`. When an agent spawns in a new session, it reads its charter, history, and team decisions — effectively "resuming" with accumulated knowledge.
+
+The trade-off: Squad's approach compounds knowledge but also compounds noise. The v0.4.0 bloat incident (decisions.md at 80K tokens) shows that persistent accumulation requires active curation.
+
+### Claude Code: Built-in Resume
+
+Claude Code provides infrastructure-level session resume: `claude --continue` picks up the last session, `claude --resume` lets you choose from recent sessions. Named sessions via `/rename`. Auto-cleanup after 30 days. No user-managed state files needed.
+
+### LangGraph: Checkpointing
+
+LangGraph saves full `StateSnapshot` objects at every super-step, scoped by `thread_id`. Backends range from `InMemorySaver` (dev) to `PostgresSaver` (prod). This enables not just resume but **time travel** — rewinding to any previous state and forking execution. The most powerful resume mechanism surveyed, but also the heaviest.
 
 
 ## The Freshness vs Accumulation Trade-off
@@ -184,21 +260,42 @@ When context budget runs low, frameworks employ several compression techniques:
 The most effective strategy is also the simplest: **don't load what you don't need.** GSD-Antigravity's search-first approach and Claude Code's on-demand topic loading both embody this principle. Speculative loading ("include everything just in case") is the primary cause of premature context exhaustion.
 
 
-## Cross-Framework Compatibility
+## Cross-Framework Compatibility Matrix
 
-No single instruction file works across all AI coding tools. Key observations (derived from comparing 7+ platforms):
+One practical question: which instruction/memory files are recognized by which tools? This matters for teams using multiple AI coding tools.
 
-- **`AGENTS.md`** has the broadest support among IDE agents — it's the closest thing to a universal instruction file.
-- **`SKILL.md`** (via [agentskills.io](https://agentskills.io/)) is the most portable structured format, recognized by five major tools.
+| File/Convention | Copilot | Claude Code | Cursor | Windsurf | Cline | Aider | GSD |
+|---|---|---|---|---|---|---|---|
+| `AGENTS.md` | ✅ | — | ✅ | — | ✅ | — | ✅ |
+| `CLAUDE.md` | ✅ | ✅ | — | — | — | — | ✅ |
+| `.cursorrules` / `.cursor/rules/` | — | — | ✅ | — | ✅ | — | — |
+| `.windsurfrules` / `.windsurf/rules/` | — | — | — | ✅ | ✅ | — | — |
+| `.clinerules/` | — | — | — | — | ✅ | — | — |
+| `.github/copilot-instructions.md` | ✅ | — | — | — | — | — | — |
+| `*.instructions.md` (with `applyTo`) | ✅ | — | — | — | — | — | — |
+| Agent Skills (`SKILL.md`) | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
+| Auto-generated memories | ✅ (preview) | ✅ | — | ✅ | — | — | — |
+
+**Key observations:**
+
+- **`AGENTS.md`** has the broadest support among IDE agents (Copilot, Cursor, Cline, GSD). It's the closest thing to a universal instruction file.
+- **`SKILL.md`** (via [agentskills.io](https://agentskills.io/)) is the most portable structured format — recognized by Copilot, Claude Code, Cursor, Windsurf, and Cline.
+- **Cline is the most promiscuous reader** — it auto-detects `.cursorrules`, `.windsurfrules`, `AGENTS.md`, and its own `.clinerules/`.
 - **No single file works everywhere.** Teams using multiple tools need 2–3 instruction files, or a build step that generates tool-specific files from a canonical source.
-- **Auto-memory is converging** — multiple platforms now auto-extract and persist learnings, though storage formats and scoping differ.
-
-See [Instructions and Skills](../vscode/instructions-and-skills.md) for Copilot-specific file conventions.
+- **Auto-memory is converging** — Claude Code, Copilot, and Windsurf all auto-extract and persist learnings, though the storage formats and scoping differ.
 
 
-## Platform Agent Persistence
+## Platform Agent Persistence (CrewAI, LangGraph, AutoGPT)
 
-As agent systems scale to multi-user and multi-project deployment, file-based persistence gives way to database-backed state management (SQLite, Postgres, Redis, vector stores). Platform frameworks like CrewAI, LangGraph, and AutoGPT each implement this differently, but the transferable insight is the same: the filesystem-as-database pattern works well for single-developer coding agents, but doesn't scale to concurrent multi-user scenarios where query performance and transactional consistency matter.
+Platform agent frameworks (designed for multi-user deployment rather than single-developer IDE use) take different approaches:
+
+**CrewAI** uses a unified `Memory` class with hierarchical scoping (filesystem-like paths: `/project/alpha`, `/agent/researcher`). The LLM analyzes content on save, inferring scope, categories, and importance. Retrieval uses composite scoring: semantic similarity + recency decay + importance weighting. Default backend: LanceDB at `./.crewai/memory/`. Task persistence via SQLite enables `crewai replay -t <task_id>` for mid-workflow resume.
+
+**LangGraph** separates short-term (checkpointers: `InMemorySaver`, `SqliteSaver`, `PostgresSaver`) from long-term (Store: namespaced key-value with optional semantic search). LangMem adds three memory types from the CoALA paper: Semantic (facts), Episodic (experiences), Procedural (behavior/prompts). The most architecturally sophisticated memory system surveyed — and the most complex to configure.
+
+**AutoGPT** split into Classic (file-based `state.json` + workspace files) and Platform (PostgreSQL + Redis + vector stores). The Platform architecture uses PostgreSQL with Prisma for structured data, Redis for session cache (12h TTL), and Mem0 or Pinecone for semantic memory. The Classic `state.json` approach — serialize the entire agent state to a file, deserialize to resume — is the simplest possible persistence, though it doesn't scale.
+
+These platforms demonstrate that **as agent systems scale to multi-user and multi-project, file-based persistence gives way to database-backed systems.** But for single-developer coding agents, the added infrastructure complexity isn't worth it.
 
 
 ## Quick Reference
@@ -217,14 +314,19 @@ As agent systems scale to multi-user and multi-project deployment, file-based pe
 
 ## References
 
+- finding-agent-context-persistence-survey.md — comprehensive survey of persistence mechanisms across 12+ frameworks
+- finding-gsd-concrete-patterns.md — GSD patterns including section mutability, context budget, `.continue-here.md`
+- finding-ecosystem-synthesis.md — cross-ecosystem synthesis (shariqriazz, dhar174 context layers, decision capture)
+- finding-squad-deep-dive.md — Squad memory system, context budget management, freshness vs accumulation
 - [agentskills.io](https://agentskills.io/) — Agent Skills open standard (`SKILL.md`)
 - [AGENTS.md specification](https://github.com/agentsmd/agents.md) — open standard for agent instruction files
 - CoALA paper — Cognitive Architectures for Language Agents (LangMem's theoretical basis)
 
 ## See Also
 
-- [GSD](../projects/gsd.md) — GSD's `STATE.md`, context budget monitoring, and fresh-context-per-task model
-- [Squad](../projects/squad.md) — Squad's layered memory system and accumulated knowledge philosophy
+- [GSD](../frameworks/gsd.md) — GSD's `STATE.md`, context budget monitoring, and fresh-context-per-task model
+- [Squad](../frameworks/squad.md) — Squad's layered memory system and accumulated knowledge philosophy
 - [Instructions and Skills](../vscode/instructions-and-skills.md) — VS Code Copilot's instruction persistence and activation models
 - [Delegation and Subagents](delegation-and-subagents.md) — delegation patterns and context isolation between parent/child agents
 - [Behavioral Rules](behavioral-rules.md) — behavioral constraints including deviation rules and autonomy zones
+- [Context Engineering](context-engineering.md) — principles for what goes into the context window and why, including budget management and the summarization trap

@@ -1,7 +1,6 @@
 ---
 name: eng-wtf
 description: Record a mistake with full detail — what happened, why, and how bad
-agent: eng
 ---
 
 The user is flagging a mistake. Your job is to **acknowledge and record it**, not to fix it right now. Course correction happens in conversation afterward.

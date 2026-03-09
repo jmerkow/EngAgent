@@ -1,7 +1,13 @@
+---
+title: Behavioral Rules & Constraint Patterns
+description: Cross-framework catalog of behavioral rules, autonomy boundaries, quality constraints, and failure escalation patterns that shape how AI coding agents operate within defined limits. Synthesized from GSD, Squad, awesome-copilot, Anthropic skills, and community instruction patterns.
+topics: [behavioral-rules, constraints, autonomy, deviation-rules, quality-gates, failure-escalation, anti-slop, agent-discipline]
+---
+
 # Behavioral Rules & Constraint Patterns
 
-> Cross-framework catalog of behavioral rules, autonomy boundaries, quality constraints, and failure escalation patterns that shape how AI coding agents operate within defined limits. Synthesized from GSD, Squad, awesome-copilot, Anthropic skills, and community instruction patterns.
->
+> **Topics:** behavioral rules, constraints, autonomy boundaries, deviation rules, quality gates, failure escalation, anti-slop, agent discipline
+> **Useful when:** designing agent behavioral constraints, defining autonomy zones, implementing quality gates, building failure escalation protocols, understanding the "constraint > capability" principle
 > **Key concepts:** deviation rules, autonomy boundaries, planning locks, confidence scoring, anti-AI-slop, forced refinement, reviewer lockout, structured returns, section mutability, STOP & COMMIT points
 
 ## Overview
@@ -11,25 +17,75 @@ The most effective AI coding agents are the most constrained ones. This is the c
 Behavioral rules define **what agents can and cannot do independently**. They are distinct from capabilities (what agents *can* do) and instructions (what agents *should* do). A behavioral rule is a hard constraint: a boundary, a gate, an escalation trigger. It fires when the agent encounters a situation that requires a decision about scope, quality, or autonomy — and it tells the agent whether to proceed, pause, or stop.
 
 ```mermaid
-flowchart LR
-    A[Autonomy Boundaries] --> G[Execution Gates] --> Q[Quality Constraints] --> F[Failure Escalation] --> O[Output Constraints]
+flowchart TD
+    subgraph Autonomy ["Autonomy Boundaries"]
+        DR[Deviation Rules]
+        TZ[Three-Zone Model]
+        CS[Confidence Scoring]
+        IH["I Handle / I Don't Handle"]
+    end
+
+    subgraph Gates LR["Execution Gates"]
+        PL[Planning Lock]
+        SC[STOP & COMMIT Points]
+        DG[Design Review Gate]
+    end
+
+    subgraph Quality LR["Quality Constraints"]
+        CC[Constraint > Capability]
+        AS[Anti-AI-Slop]
+        FR[Forced Refinement]
+    end
+
+    subgraph Failure LR["Failure Escalation"]
+        TS[N-Strike Escalation]
+        RL[Reviewer Lockout]
+        FL[Failure Ladder]
+    end
+
+    subgraph Output ["Output Constraints"]
+        SR[Structured Returns]
+        RT[Response Mode Tiering]
+        CR[Conciseness Rules]
+        SM[Section Mutability]
+    end
+
+    Autonomy --> Gates --> Quality --> Failure --> Output
 ```
 
 ## Autonomy Boundaries
 
 Every framework must answer: **when does the agent proceed on its own, and when does it stop and ask?** The approaches vary from GSD's numbered rule table to Squad's natural-language boundary lists, but they all solve the same problem — preventing both over-asking (agent paralyzed by uncertainty) and under-asking (agent making scope decisions silently).
 
-### Four-Tier Deviation Rules
+### GSD's Four-Tier Deviation Rules
 
-Categorize deviations by impact, not type. Only architectural changes require human approval; bugs, missing validation, and blockers are pre-authorized for auto-fix with documentation.
+GSD codifies exactly four rules for handling surprises during execution. This is the most precise autonomy model in the ecosystem.
 
-This pattern originates in GSD's deviation rules (see [GSD](../projects/gsd.md) § Deviation Rules) and maps to Squad's charter boundaries (see [Squad](../projects/squad.md) § The Charter Template).
+| Rule | Trigger | Action | Human Input? |
+|------|---------|--------|:---:|
+| 1 | Bug \u2014 broken behavior, errors, type errors, race conditions, leaks | Auto-fix, document in summary | No |
+| 2 | Missing critical \u2014 error handling, validation, auth, CSRF/CORS, rate limiting, logging | Auto-fix, document | No |
+| 3 | Blocker \u2014 missing deps, wrong types, broken imports, missing env/config | Auto-fix, document | No |
+| 4 | Architectural \u2014 new DB table, schema change, new service, switching libs, breaking API | **STOP**, ask user | **Yes** |
 
-### Domain-Scoped Boundaries
+Only rule 4 requires human input. Rules 1–3 give the agent pre-authorized freedom for routine deviations — the kind that would otherwise trigger an unnecessary confirmation dialog. The key design decision: **categorize by impact, not by type**.
 
-Boundary lists scope agents by domain ("I handle frontend, not API design") rather than by situation type. This is less precise than numbered deviation rules but more flexible — domain scope adapts naturally to multi-agent systems where each agent owns a vertical slice. The "When I'm unsure" fallback prevents silent guessing; in single-agent systems it translates to explicit mode handoffs.
+*See [GSD](../frameworks/gsd.md) § Deviation Rules*
 
-*See [Squad](../projects/squad.md) § The Charter Template*
+### Squad's "I Handle / I Don't Handle" Boundaries
+
+Squad takes a different approach: each agent's charter includes an explicit boundary section that lists what the agent owns and what belongs to someone else.
+
+```markdown
+## Boundaries
+**I handle:** frontend components, CSS, responsive layout, accessibility
+**I don't handle:** API design, database schema, deployment config
+**When I'm unsure:** I say so and suggest who might know.
+```
+
+This is less precise than GSD's numbered rules but more flexible — boundaries are domain-scoped rather than situation-scoped. The "When I'm unsure" fallback prevents the agent from guessing silently. In a single-agent system, this translates to explicit mode handoffs: implementation agent → planning agent when the task requires architectural decisions.
+
+*See [Squad](../frameworks/squad.md) § The Charter Template*
 
 ### Three-Zone Autonomy Model
 
@@ -59,7 +115,7 @@ This appears in the "Spec-Driven Workflow V1" instruction pattern from awesome-c
 
 The thresholds are heuristic, not precise — agents can't actually calculate confidence percentages. But framing autonomy as a confidence gradient gives the agent a reasoning framework: "Am I confident enough to proceed, or should I gather more information first?"
 
-*See [awesome-copilot](../projects/copilot-awesome.md) § Instruction Patterns*
+*See [awesome-copilot](../ecosystems/copilot-awesome.md) § Instruction Patterns*
 
 ## Planning Locks and Execution Gates
 
@@ -71,15 +127,31 @@ GSD enforces a hard gate between planning and execution: plans must exist and be
 
 The plan is a contract. The separation of concerns — planner writes, executor implements, neither does both — is the structural version of GSD's deviation Rule 4.
 
-*See [GSD](../projects/gsd.md) § Workflow Phases*
+*See [GSD](../frameworks/gsd.md) § Workflow Phases*
 
 ### STOP & COMMIT Points
 
-Explicit pause markers in implementation plans force the agent to save progress and verify each step's output before proceeding. This prevents the common failure mode of implementing an entire plan in one pass, discovering a bug in step 3, and having to unwind steps 4–7. It also creates natural checkpoints where context can be flushed and a fresh subagent can take over if the context is degrading.
+The awesome-copilot "Structured Autonomy" plugin introduces explicit pause markers in implementation plans:
 
-Both awesome-copilot and Squad implement this pattern — awesome-copilot via `STOP & COMMIT` annotations in plan steps, Squad via `STOP/WAIT` keywords gated by regex checks.
+```markdown
+### Step 3: Implement auth middleware
+[implementation details]
 
-*See [awesome-copilot](../projects/copilot-awesome.md) § Agent Architecture Patterns, [Squad](../projects/squad.md)*
+**STOP & COMMIT** — Commit this step before proceeding. Verify middleware loads correctly.
+
+### Step 4: Wire up routes
+```
+
+Each STOP & COMMIT point forces the agent to:
+1. Save progress (commit or write to state file)
+2. Verify the step's output
+3. Only then proceed to the next step
+
+This prevents the common failure mode of implementing an entire plan in one pass, discovering a bug in step 3, and having to unwind steps 4–7. It also creates natural checkpoints where context can be flushed and a fresh subagent can take over if the context is degrading.
+
+Squad enforces a similar gate in its Init Mode: `STOP/WAIT` keywords between "propose team" and "create files," tested by regex checks for `\bSTOP\b`, `\bWAIT\b`, `\bDO NOT (proceed|continue|create)\b`.
+
+*See [awesome-copilot](../ecosystems/copilot-awesome.md) § Agent Architecture Patterns, [Squad](../frameworks/squad.md)*
 
 ### Squad's Design Review Gate
 
@@ -87,7 +159,7 @@ Before any multi-agent task involving 2+ agents on shared systems, Squad auto-tr
 
 This maps to a simpler principle for single-agent systems: **for refactor-scale work, audit before implementing.** The sequence — analyze existing state → design target state → inventory changes → implement — consistently produces better results than jumping straight to implementation.
 
-*See [Squad](../projects/squad.md)*
+*See [Squad](../frameworks/squad.md)*
 
 ## Quality Constraint Patterns
 
@@ -100,19 +172,37 @@ The single most important principle across the ecosystem:
 > **"The most effective agents are the most constrained."**
 > — Observed across awesome-copilot agent patterns
 
-The principle inverts the intuition that more capable = more useful. Unconstrained agents produce more output but lower quality. Constrained agents produce exactly what's needed. Heavy verbatim constraints (scope limits, output caps, confidence thresholds) consistently outperform permissive instructions across observed agent patterns.
+This manifests in concrete rules found in the awesome-copilot Gem Team orchestrator and Structured Autonomy agents:
+
+- "DO NOT WRITE ANY CODE OUTSIDE OF WHAT IS SPECIFIED IN THE PLAN"
+- "NEVER execute tasks directly" (orchestrator constraint)
+- "Direct answers in ≤3 sentences"
+- "Stop at 80% confidence"
+
+The principle inverts the intuition that more capable = more useful. Unconstrained agents produce more output but lower quality. Constrained agents produce exactly what's needed.
 
 Evidence from retro analysis supports this: Pattern B ("do more than asked") accounts for 20 mistakes across 12 sessions, making it the second most common failure pattern. Every instance involved an agent exceeding its constraints — adding unrequested features, over-engineering solutions, fabricating scope.
 
-*See [awesome-copilot](../projects/copilot-awesome.md) § Agent Architecture Patterns for concrete constraint examples*
+*See [awesome-copilot](../ecosystems/copilot-awesome.md) § Agent Architecture Patterns*
 
 ### Anti-AI-Slop Patterns
 
-Prohibitions outperform aspirations for LLM instruction-following — listing what bad output looks like and forbidding it is more effective than describing ideal output abstractly. Default LLM outputs are treated as unacceptable until proven otherwise; skills encode quality as explicit forbidden-pattern lists rather than positive descriptions.
+Anthropic's skill library explicitly fights default LLM output patterns — what the community calls "AI slop." Rather than describing desired quality, Anthropic encodes quality as **prohibitions**:
 
-The anti-slop philosophy extends beyond visual design into documentation and naming. The philosophical divide: Anthropic constrains to force quality; community repos maximize variety. Notably, awesome-copilot does *not* enforce anti-slop — a deliberate breadth-over-quality trade-off.
+| Skill | Forbidden Pattern |
+|-------|------------------|
+| frontend-design | Never use Inter/Roboto/Arial. No purple gradients on white. |
+| web-artifacts-builder | No centered layouts, no purple gradients, no uniform rounded corners, no Inter. |
+| canvas-design | Each piece must embed a "conceptual seed" — no surface-level generation. |
+| algorithmic-art | Philosophy naming must be specific ("Organic Turbulence") — not generic. |
 
-*See [Anthropic Skills](../projects/anthropic-skills.md) § The Anti-AI-Slop Philosophy for forbidden-pattern examples*
+The anti-slop philosophy extends beyond visual design. The claude-cookbooks repo enforces it in documentation: no leading with machinery, no feature dumps, no noisy output. The pattern is consistent: **default LLM outputs are treated as unacceptable until proven otherwise.**
+
+This is "constraint as design philosophy" in its purest form. The skill doesn't describe what good output looks like — it lists what bad output looks like and forbids it. Prohibitions are more effective than aspirations for LLM instruction-following because they give the model a concrete pattern to avoid rather than an abstract ideal to approximate.
+
+Notably, the community-curated awesome-copilot repo does *not* enforce anti-slop — it maximizes breadth. This is a philosophical divide: Anthropic constrains to force quality; the community repo maximizes variety.
+
+*See [Anthropic Skills](../ecosystems/anthropic-skills.md) § The Anti-AI-Slop Philosophy*
 
 ### Forced Refinement
 
@@ -124,7 +214,7 @@ This inverts the typical agent workflow where the agent delivers output and wait
 
 The sub-agent reader test takes forced refinement to its logical conclusion: spawn a fresh Claude instance with no context to simulate a naive reader, then iterate based on what the naive reader doesn't understand. This is evaluation-by-proxy — the agent creates its own reviewer.
 
-*See [Anthropic Skills](../projects/anthropic-skills.md) § Forced Refinement Pattern*
+*See [Anthropic Skills](../ecosystems/anthropic-skills.md) § Forced Refinement Pattern*
 
 ## Failure Escalation Patterns
 
@@ -142,7 +232,7 @@ The effective pattern: **After N failed attempts at the same approach, dump stat
 
 A stricter variant from shariqriazz: after 2 failed fix attempts, **escalate to a fresh agent with full context**. The fresh agent owns the fix end-to-end. This breaks the anchoring bias where the original agent keeps trying variations of its first (wrong) approach.
 
-*See [awesome-copilot](../projects/copilot-awesome.md) § Instruction Patterns*
+*See [awesome-copilot](../ecosystems/copilot-awesome.md) § Instruction Patterns*
 
 ### Reviewer Lockout
 
@@ -154,7 +244,7 @@ This prevents the "agent keeps fixing its own work in circles" failure mode. Eac
 
 In single-agent systems, reviewer lockout doesn't apply directly. But the underlying principle does: **don't let the author of a mistake be the sole reviewer of its fix.** The single-agent equivalent is forced external verification — read the deliverable file fresh before marking a task complete, rather than trusting the in-session state.
 
-*See [Squad](../projects/squad.md) § Reviewer Protocol and Rejection Lockout*
+*See [Squad](../frameworks/squad.md) § Reviewer Protocol and Rejection Lockout*
 
 ### Failure-Escalation Ladder
 
@@ -196,15 +286,24 @@ GSD uses variants: `PLANNING COMPLETE`, `VERIFICATION PASSED`, `ISSUES FOUND`. T
 
 The pattern extends to subagent returns: when a parent agent spawns a subagent, the subagent ends its report with a structured status line. The parent reads the status to decide whether to proceed, retry, or escalate.
 
-*See [GSD](../projects/gsd.md) § Structured Returns for Orchestration*
+*See [GSD](../frameworks/gsd.md) § Structured Returns for Orchestration*
 
 ### Response Mode Tiering
 
-Match response depth to request complexity — simple factual questions shouldn't trigger full agent spawns with charter reads. The selection bias is toward upgrading when uncertain; it's better to over-respond slightly than to under-respond and miss something.
+Squad classifies request weight before choosing action weight:
+
+| Mode | Response Time | What Happens |
+|------|:---:|-------------|
+| **Direct** | ~2–3s | Coordinator answers from memory — no agent spawned |
+| **Lightweight** | ~8–12s | One agent, minimal prompt — no history/decisions reads |
+| **Standard** | ~25–35s | Full agent spawn with charter, history, and decisions |
+| **Full** | ~40–60s | Multi-agent parallel spawn |
+
+The principle — **match response depth to request complexity** — prevents over-processing simple questions. "What port does the server run on?" shouldn't trigger a full agent spawn with charter reads. The selection bias is toward upgrading when uncertain — it's better to over-respond slightly than to under-respond and miss something.
 
 For single-agent research workflows, this maps to: quick factual answer → standard investigation → deep landscape survey, each with different tool budgets and deliverable expectations.
 
-*See [Squad](../projects/squad.md) § Response Mode Tiering for the four-tier classification*
+*See [Squad](../frameworks/squad.md) § Response Mode Tiering*
 
 ### Conciseness Rules
 
@@ -230,7 +329,7 @@ This prevents a subtle failure mode: agents updating historical records to match
 
 The pattern generalizes to any structured document with mixed-purpose sections. Objectives, plans, and findings all benefit from explicit mutability annotations. Without them, agents treat every section as OVERWRITE by default — which is correct for status fields but destructive for historical records.
 
-*See [GSD](../projects/gsd.md) § Section-Level Mutability Rules*
+*See [GSD](../frameworks/gsd.md) § Section-Level Mutability Rules*
 
 ## The Constraint-as-Design-Philosophy Principle
 
@@ -286,19 +385,17 @@ flowchart TD
 
 | Source | What It Contributes | Library Doc |
 |--------|-------------------|-------------|
-| GSD (Get Shit Done) | Deviation rules, planning lock, section mutability, context budget, structured returns | [gsd.md](../projects/gsd.md) |
-| Squad | Reviewer lockout, charter boundaries, response tiering, routing rules, STOP gates | [squad.md](../projects/squad.md) |
-| awesome-copilot | Constraint > capability, confidence scoring, STOP & COMMIT, conciseness rules | [copilot-awesome.md](../projects/copilot-awesome.md) |
-| Anthropic skills | Anti-AI-slop prohibitions, forced refinement, sub-agent reader testing | [anthropic-skills.md](../projects/anthropic-skills.md) |
+| GSD (Get Shit Done) | Deviation rules, planning lock, section mutability, context budget, structured returns | [gsd.md](../frameworks/gsd.md) |
+| Squad | Reviewer lockout, charter boundaries, response tiering, routing rules, STOP gates | [squad.md](../frameworks/squad.md) |
+| awesome-copilot | Constraint > capability, confidence scoring, STOP & COMMIT, conciseness rules | [copilot-awesome.md](../ecosystems/copilot-awesome.md) |
+| Anthropic skills | Anti-AI-slop prohibitions, forced refinement, sub-agent reader testing | [anthropic-skills.md](../ecosystems/anthropic-skills.md) |
 
 ## See Also
 
-- [GSD](../projects/gsd.md) — deviation rules, planning lock, fresh-context-per-task model
-- [Squad](../projects/squad.md) — reviewer lockout, charter boundaries, response mode tiering
-- [Anthropic Skills](../projects/anthropic-skills.md) — anti-slop philosophy, forced refinement
-- [awesome-copilot](../projects/copilot-awesome.md) — constraint > capability, confidence scoring
+- [GSD](../frameworks/gsd.md) — deviation rules, planning lock, fresh-context-per-task model
+- [Squad](../frameworks/squad.md) — reviewer lockout, charter boundaries, response mode tiering
+- [Anthropic Skills](../ecosystems/anthropic-skills.md) — anti-slop philosophy, forced refinement
+- [awesome-copilot](../ecosystems/copilot-awesome.md) — constraint > capability, confidence scoring
 - [Hooks and Lifecycle](../vscode/hooks-and-lifecycle.md) — hooks-based constraint enforcement
 - [delegation-and-subagents.md](delegation-and-subagents.md) — delegation constraints, subagent scope control
 - [context-and-persistence.md](context-and-persistence.md) — state management rules, context budget
-- [Claude Cookbooks](../projects/claude-cookbooks.md) — Anthropic's cookbook with slash commands, behavioral constraints, and tool restrictions
-- [Spec Kit](../projects/spec-kit.md) — agent-agnostic specification tool with behavioral rule patterns

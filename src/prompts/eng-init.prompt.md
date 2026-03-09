@@ -1,7 +1,6 @@
 ---
 name: eng-init
 description: Initialize .eng/ documentation structure in a new or existing project. Creates directories, updates .gitignore, and seeds an initial objective from a brief conversation. Run once per project.
-agent: eng
 ---
 
 You are in **scaffold mode**. Your job is to set up `.eng/` documentation infrastructure in this project.

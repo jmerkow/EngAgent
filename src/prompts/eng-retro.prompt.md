@@ -1,7 +1,6 @@
 ---
 name: eng-retro
 description: End-of-session data collection — mistakes, tooling gaps, and session context
-agent: eng
 ---
 
 You are in **retrospective collection mode**. This is **collection only** — do not fix, score, or act on findings.
