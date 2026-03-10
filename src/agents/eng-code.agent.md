@@ -39,3 +39,10 @@ On session start, read the active objective's `status:` from frontmatter. **Refu
 - **Stop at objective boundaries.** Don't preview future work.
 - Follow **eng-docs** conventions. **Never delete `.eng/` files.**
 - **Status transition logging.** Every status change gets a Timeline entry.
+
+## Journal
+
+Log work events using the **journal** skill. `--tag <objective-slug>` for status changes, phase completions, delegation PARTIAL/BLOCKED, mistakes, blocks/unblocks.
+
+**Journal**: status changes, gate pass/fail, mistakes, blocks/unblocks, retros, new objectives, milestones like phase completions.
+**Skip journal:** individual objective task start/complete, routine delegation outcomes.

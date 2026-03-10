@@ -12,6 +12,11 @@ examples:
   %(prog)s WARNING -m "Dependency blocked for 2 weeks" -t blocked --project infra
   %(prog)s INFO -m "Chose option B for API design" -t decision --tag architecture
   %(prog)s INFO -m "Met with customer last Tuesday" -t meeting --project ce --at 2026-03-04
+
+batch mode (log several events, commit once):
+  %(prog)s INFO -m "event 1" -t meeting --no-commit
+  %(prog)s INFO -m "event 2" -t decision --no-commit
+  %(prog)s commit -m "standup recap"
 """
 
 
@@ -103,7 +108,34 @@ def setup_logger(log_file):
     return logger
 
 
+def commit_main():
+    """Commit accumulated journal changes in one shot."""
+    p = argparse.ArgumentParser(
+        prog="journal commit",
+        description="Commit pending journal changes.",
+    )
+    p.add_argument("-m", "--message", default="batch update")
+    p.add_argument(
+        "--project",
+        default=None,
+        help="Project subdirectory (matches --project used during logging)",
+    )
+    args = p.parse_args(sys.argv[2:])
+
+    journal_root = resolve_journal_dir()
+    if not journal_root.exists():
+        print(f"Nothing to commit — {journal_root} does not exist.", file=sys.stderr)
+        return
+
+    auto_commit(journal_root, args.message)
+    print(f"Committed journal changes: {args.message}")
+    check_push_status(journal_root)
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "commit":
+        return commit_main()
+
     p = argparse.ArgumentParser(
         prog="journal",
         description="Log work events.",
@@ -117,6 +149,11 @@ def main():
     p.add_argument("--entity")
     p.add_argument("--at", help="When it happened (free text, prefixed to message)")
     p.add_argument("--tag", action="append", default=[])
+    p.add_argument(
+        "--no-commit",
+        action="store_true",
+        help="Log the event but skip git commit (use with 'commit' subcommand for batch mode)",
+    )
     args = p.parse_args()
 
     if args.project and (".." in args.project or args.project.startswith(("/", "\\"))):
@@ -145,10 +182,11 @@ def main():
     # Echo to stdout so the calling agent sees confirmation
     print(formatted)
 
-    # Auto-commit + push reminder
-    truncated = args.message[:60] + ("..." if len(args.message) > 60 else "")
-    auto_commit(journal_root, f"{args.type} — {truncated}")
-    check_push_status(journal_root)
+    # Auto-commit + push reminder (unless --no-commit)
+    if not args.no_commit:
+        truncated = args.message[:60] + ("..." if len(args.message) > 60 else "")
+        auto_commit(journal_root, f"{args.type} — {truncated}")
+        check_push_status(journal_root)
 
 
 if __name__ == "__main__":

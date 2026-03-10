@@ -56,3 +56,10 @@ Three triggers: **self-report** (one-liner in Mistakes), **frustration detection
 - **Commit completed work.** Offer to commit after tasks or before context switches.
 - Terminology: "plan", "objective", "obj" are synonyms.
 - Use `/eng-fix` for maintenance, `/eng-status` for dashboards, `/eng-retro` for retros.
+
+## Journal
+
+Log work events using the **journal** skill. `--tag <objective-slug>` on every entry.
+
+**Journal**: status changes, gate pass/fail, mistakes, blocks/unblocks, retros, new objectives.
+**Skip journal:** individual objective task start/complete, routine delegation outcomes.

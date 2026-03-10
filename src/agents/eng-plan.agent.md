@@ -56,3 +56,10 @@ Same triggers as eng: **self-report**, **frustration detection**, **`/eng-wtf`**
 - Agent observations go in Parking Lot, not the Implementation Plan.
 - **Status transition logging.** Every status change gets a Timeline entry.
 - Terminology: "plan", "objective", "obj" are synonyms.
+
+## Journal
+
+Log work events using the **journal** skill. `--tag <objective-slug>` on every entry.
+
+**Journal**: status changes, gate pass/fail, design decisions locked, phase completions, mistakes.
+**Skip journal:**: review findings detail.

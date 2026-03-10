@@ -98,3 +98,7 @@ Subagents (`@eng-research-sub`) can't write to objectives — they report mistak
 ## Status transition logging
 
 If you change the status of any `.eng/` document (rare for research, but possible), log it: `Status → {new status}. {reason}.` in the Timeline section.
+
+## Journal
+
+Log work events using the **journal** skill. `--tag <objective-slug>` on PARTIAL/BLOCKED, mistakes, blocks/unblocks, and new findings and one sentence summary. Don't log every search or read action — focus on key milestones and outcomes.
