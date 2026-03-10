@@ -3,10 +3,10 @@
 Log work events using the journal skill. One event per call, commits automatically.
 
 ```bash
-python <skill-path>/scripts/journal.py <LEVEL> -m "<verb> <subject> — <outcome>" -t <type> --tag <slug> --project <project>
+journal <LEVEL> -m "<verb> <subject> — <outcome>" -t <type> --tag <slug> --project <project>
 ```
 
-Batch mode (2+ events in one turn): add `--no-commit` to each, then `commit -m "<summary>"` once at the end.
+Batch mode (2+ events in one turn): add `--no-commit` to each, then `journal commit -m "<summary>"` once at the end.
 
 **What to log:** Decisions, status changes, blockers, mistakes, meeting outcomes — anything you'd want to grep for in 3 months. When unsure, suggest logging and let the user confirm.
 

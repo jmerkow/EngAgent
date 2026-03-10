@@ -6,23 +6,23 @@ argument-hint: 'Tell me what happened...'
 
 # Work Journal
 
-Append-only work event log using Python `logging`. Log during conversations via `scripts/journal.py`. Query with grep.
+Append-only work event log using Python `logging`. Log during conversations via the `journal` CLI command. Query with grep.
 
 ## Quick Start
 
 ```bash
 # Single event (commits immediately — existing behavior)
-python <skill-path>/scripts/journal.py INFO -m "Weekly sync — agreed on Q3 timeline" -t meeting
-python <skill-path>/scripts/journal.py WARNING -m "Dependency blocked for 2 weeks" -t blocked
+journal INFO -m "Weekly sync — agreed on Q3 timeline" -t meeting
+journal WARNING -m "Dependency blocked for 2 weeks" -t blocked
 
 # Batch mode (log several events, commit once at the end)
-python <skill-path>/scripts/journal.py INFO -m "Agreed on Q3 timeline" -t decision --no-commit
-python <skill-path>/scripts/journal.py INFO -m "Dependency blocked for 2 weeks" -t blocked --no-commit
-python <skill-path>/scripts/journal.py commit -m "standup recap"
+journal INFO -m "Agreed on Q3 timeline" -t decision --no-commit
+journal INFO -m "Dependency blocked for 2 weeks" -t blocked --no-commit
+journal commit -m "standup recap"
 
 # Hub repo tracking multiple projects — logs to {journal-dir}/{project}/events.log
-python <skill-path>/scripts/journal.py INFO -m "Mars weekly sync" -t meeting --project ce
-python <skill-path>/scripts/journal.py INFO -m "Package validation" -t task --project cxr-v2
+journal INFO -m "Mars weekly sync" -t meeting --project ce
+journal INFO -m "Package validation" -t task --project cxr-v2
 
 # Query
 grep "WARNING\|ERROR\|CRITICAL" <journal-dir>/events.log    # needs attention
@@ -63,8 +63,8 @@ Built-in: `meeting`, `decision`, `task`, `note`, `correction`, `blocked`, `impor
 Commit all pending journal changes in one shot. Use after logging events with `--no-commit`.
 
 ```bash
-python <skill-path>/scripts/journal.py commit                       # default message "batch update"
-python <skill-path>/scripts/journal.py commit -m "standup recap"    # custom commit message
+journal commit                       # default message "batch update"
+journal commit -m "standup recap"    # custom commit message
 ```
 
 | Flag | Required | Description |
@@ -111,6 +111,10 @@ Events write to `{journal-dir}/{project}/events.log`. When the journal lives ins
 **Auto-commit**: After writing, if the journal directory is inside a git repo, journal.py runs `git add && git commit`. Events are captured in git history immediately without a manual step.
 
 **Push reminder**: If unpushed commits exist, journal.py prints a reminder. The agent can act on it or surface it to the user.
+
+## Setup
+
+The `journal` command must be installed before first use. If `journal` is not found, load `references/setup.md` and follow the setup flow.
 
 ## Related Skills
 
