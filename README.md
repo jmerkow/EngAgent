@@ -38,7 +38,8 @@ What makes EngAgent different:
 | **Skills** | [`eng-docs`](src/skills/eng-docs/SKILL.md) | `.eng/` documentation system: objective templates, findings format, naming conventions |
 | | [`eng-retro`](src/skills/eng-retro/SKILL.md) | Retrospective system: collection template, severity rubric, category taxonomy |
 | **Hooks** | PreCompact | Checkpoint before context compaction. Flushes objectives and decisions to disk |
-| **Instructions** | [`preferences.instructions.md`](src/instructions/preferences.instructions.md) | Universal coding preferences: style, naming, git conventions |
+| **Instructions** | [`preferences-coding`](preferences-coding.example.instructions.md) | Code quality, naming, and style rules |
+| | [`preferences-universal`](preferences-universal.example.instructions.md) | Workflow, output, git, and collaboration conventions |
 
 ## The Library
 
@@ -48,7 +49,7 @@ What makes EngAgent different:
 
 There are a few layers, but they're all just markdown files:
 
-- **`preferences.instructions.md`** sets coding style, naming, git conventions. Applies everywhere.
+- **`preferences-coding.instructions.md`** and **`preferences-universal.instructions.md`** set coding style, naming, git conventions. Applies everywhere. These ship as defaults you can customize (see below).
 - **`eng.agent.md`** and **`eng-plan.agent.md`** are the agent definitions. They have the behavioral rules: when to ask, when to just do it, how much to research before acting.
 - **Skills** (`eng-docs`, `eng-retro`) give the agent domain knowledge about `.eng/` file formats. It loads these on demand.
 - Then there's the **per-repo stuff** — `.eng/objectives/`, `.eng/findings/`, `.eng/retros/`. This is where the agent reads what's been done and figures out what's next.
@@ -81,7 +82,9 @@ node cli.mjs build
 node cli.mjs install
 ```
 
-Before running `build`, you can optionally customize `config.json` to inject MCP server tools or any other tools into the agents. Copy `config.example.json` to `config.json` and add tools under the `tools` key. Use `*` for all agents or a specific agent name:
+Before running `build`, you can optionally customize two things:
+
+**Tools** — Copy `config.example.json` to `config.json` and add MCP server tools or other tools under the `tools` key. Use `*` for all agents or a specific agent name:
 
 ```json
 {
@@ -93,6 +96,16 @@ Before running `build`, you can optionally customize `config.json` to inject MCP
 ```
 
 `build` reads this config and injects the tools into agent frontmatter.
+
+**Preferences** — The preference instruction files ship as `.example.` defaults at the repo root. To customize, copy and edit:
+
+```bash
+cp preferences-coding.example.instructions.md preferences-coding.instructions.md
+cp preferences-universal.example.instructions.md preferences-universal.instructions.md
+# Edit to taste
+```
+
+Your copies are gitignored and won't be overwritten by `git pull`. The build uses your version when present, otherwise falls back to the shipped default.
 
 You can also add tools at runtime. When chatting with `@eng` or `@eng-plan`, click the **tools** icon in the chat input, toggle on any MCP servers or built-in tools you want, and save. This doesn't require a rebuild.
 
@@ -163,7 +176,7 @@ Additional hooks (pre-flight checks, terminal output handling, session start) ar
 ### What's next
 
 - **Better hook coverage:** session start, pre-flight checks, terminal output handling. Still figuring out what hooks can and can't do well.
-- **Install improvements:** more customization options during install. Right now preferences ship as-is; you should be able to bring your own.
+- **Install improvements:** more customization options during install. ~~Right now preferences ship as-is; you should be able to bring your own.~~ Preferences are now customizable via the `.example.` pattern.
 - **Agent personality:** soul files, tone customization, that kind of thing. The agents are functional but generic. It'd be fun to make them yours.
 - **Smarter mistake capture:** automatic frustration detection, "why did you do that?" prompts that feed into the retro system without a manual `/eng-retro` step.
 - **Dedicated research agent:** research mode has become one of the most useful parts of this system. A purpose-built research agent would take that further.

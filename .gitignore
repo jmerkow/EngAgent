@@ -13,8 +13,13 @@ scratch/
 # User config (see config.example.json)
 config.json
 
+# User preference overrides (see *.example.instructions.md)
+preferences-*.instructions.md
+!preferences-*.example.instructions.md
+
 # Journal config (local, per-project)
 .journal
 
 # Python bytecode files
 *.pyc
+.eng.worktrees/

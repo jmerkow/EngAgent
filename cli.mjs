@@ -92,6 +92,29 @@ function injectTools(filePath, config) {
   writeFileSync(filePath, content);
 }
 
+// Resolve .example.instructions.md files from the repo root: use user override
+// (same name without .example.) if present, otherwise use the example as default.
+// Copies the resolved file into destDir with the clean name.
+function resolveExampleFiles(destDir) {
+  if (!existsSync(destDir)) mkdirSync(destDir, { recursive: true });
+  for (const file of readdirSync(REPO_ROOT)) {
+    if (!file.endsWith('.example.instructions.md')) continue;
+
+    const resolved = file.replace('.example.instructions.md', '.instructions.md');
+    const overrideSrc = join(REPO_ROOT, resolved);
+    const exampleSrc = join(REPO_ROOT, file);
+    const resolvedDest = join(destDir, resolved);
+
+    if (existsSync(overrideSrc)) {
+      cpSync(overrideSrc, resolvedDest);
+      console.log(`    ⤷ ${resolved} (user override)`);
+    } else {
+      cpSync(exampleSrc, resolvedDest);
+      console.log(`    ⤷ ${resolved} (default)`);
+    }
+  }
+}
+
 // ── Build ──────────────────────────────────────────────────────────────────────
 
 function build() {
@@ -115,6 +138,9 @@ function build() {
     cpSync(srcPath, destPath, { recursive: true });
     console.log(`  src/${dir}/ → .github/${dir}/`);
   }
+
+  // Resolve .example.instructions.md → user override or renamed default
+  resolveExampleFiles(join(GITHUB_DIR, 'instructions'));
 
   // Inject/exclude config tools in built agents
   if (config.tools || config.excludeTools) {

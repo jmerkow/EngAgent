@@ -25,6 +25,7 @@ config.json                   # Local config (install dir, tool injection)
 
 - **`.eng/` is gitignored.** It's local working memory. Use `includeIgnoredFiles: true` or terminal commands when searching `.eng/` content.
 - **Config-driven tool injection.** `config.json` can inject additional tools into agent frontmatter at build time (wildcard `*` or per-agent). Use `excludeTools` to remove tools from specific agents (e.g., leaf agents that shouldn't spawn subagents).
+- **Customizable preferences.** `preferences-*.example.instructions.md` files at the repo root are shipped defaults. To customize, copy without the `.example.` suffix (e.g., `preferences-coding.instructions.md`). The build uses your copy when present; overrides are gitignored.
 
 ## Skills
 
