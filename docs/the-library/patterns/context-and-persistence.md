@@ -1,13 +1,7 @@
----
-title: Context and Persistence
-description: Cross-framework patterns for how AI coding agents persist state, manage context windows, handle session handoffs, and maintain memory across interactions — from filesystem-as-database conventions to context budget monitoring and compression strategies.
-topics: [context-persistence, memory, state-management, session-handoff, context-engineering, filesystem-as-database, context-budget, memory-hierarchy]
----
-
 # Context and Persistence
 
-> **Topics:** context persistence, memory systems, state management, session handoff, context engineering, filesystem-as-database, context budget monitoring, memory hierarchy
-> **Useful when:** designing how an agent remembers across sessions, choosing between file-based and database-backed persistence, implementing session pause/resume, managing context window degradation, understanding which instruction files are portable across tools
+> Cross-framework patterns for how AI coding agents persist state, manage context windows, handle session handoffs, and maintain memory across interactions — from filesystem-as-database conventions to context budget monitoring and compression strategies.
+>
 > **Key concepts:** filesystem as database, section-level mutability, context health curve, memory hierarchy layers, `.continue-here.md` handoff, cross-tool compatibility matrix, freshness vs accumulation trade-off, context compression
 
 ## Overview
@@ -314,19 +308,15 @@ These platforms demonstrate that **as agent systems scale to multi-user and mult
 
 ## References
 
-- finding-agent-context-persistence-survey.md — comprehensive survey of persistence mechanisms across 12+ frameworks
-- finding-gsd-concrete-patterns.md — GSD patterns including section mutability, context budget, `.continue-here.md`
-- finding-ecosystem-synthesis.md — cross-ecosystem synthesis (shariqriazz, dhar174 context layers, decision capture)
-- finding-squad-deep-dive.md — Squad memory system, context budget management, freshness vs accumulation
 - [agentskills.io](https://agentskills.io/) — Agent Skills open standard (`SKILL.md`)
 - [AGENTS.md specification](https://github.com/agentsmd/agents.md) — open standard for agent instruction files
-- CoALA paper — Cognitive Architectures for Language Agents (LangMem's theoretical basis)
+- [CoALA: Cognitive Architectures for Language Agents](https://arxiv.org/abs/2405.15793) — LangMem's theoretical basis
 
 ## See Also
 
-- [GSD](../frameworks/gsd.md) — GSD's `STATE.md`, context budget monitoring, and fresh-context-per-task model
-- [Squad](../frameworks/squad.md) — Squad's layered memory system and accumulated knowledge philosophy
-- [Instructions and Skills](../vscode/instructions-and-skills.md) — VS Code Copilot's instruction persistence and activation models
+- [GSD](../projects/gsd.md) — GSD's `STATE.md`, context budget monitoring, and fresh-context-per-task model
+- [Squad](../projects/squad.md) — Squad's layered memory system and accumulated knowledge philosophy
+- [Instructions and Skills](../platforms/copilot/instructions-and-skills.md) — VS Code Copilot's instruction persistence and activation models
 - [Delegation and Subagents](delegation-and-subagents.md) — delegation patterns and context isolation between parent/child agents
 - [Behavioral Rules](behavioral-rules.md) — behavioral constraints including deviation rules and autonomy zones
 - [Context Engineering](context-engineering.md) — principles for what goes into the context window and why, including budget management and the summarization trap
