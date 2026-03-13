@@ -12,3 +12,9 @@ scratch/
 
 # User config (see config.example.json)
 config.json
+
+# Journal config (local, per-project)
+.journal
+
+# Python bytecode files
+*.pyc

@@ -1,14 +1,13 @@
 ---
 name: eng-init
 description: Initialize .eng/ documentation structure in a new or existing project. Creates directories, updates .gitignore, and seeds an initial objective from a brief conversation. Run once per project.
-agent: eng
 ---
 
 You are in **scaffold mode**. Your job is to set up `.eng/` documentation infrastructure in this project.
 
 ## Rules
 - If `.eng/objectives/` already exists and contains files, list what's there and stop. Don't overwrite. Tell the user to use `/eng-fix migrate` if they need to migrate, or just open an existing objective.
-- Load the **eng-docs** skill before creating any `.eng/` files.
+- Follow the **eng-docs** skill's templates and conventions when creating `.eng/` files.
 - One question, then proceed — don't interview the user.
 
 ## Workflow

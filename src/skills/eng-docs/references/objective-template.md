@@ -5,42 +5,47 @@ File location: `.eng/objectives/objective-<slug>.md`
 ```markdown
 ---
 created: YYYY-MM-DD
-status: draft
+status: draft               # draft | in-review | approved | in-progress | needs-verify | completed | deferred | cancelled
 project: <project-name>
 ---
 
 # Title
 
 ## Objective
-What we're trying to accomplish. Success criteria as observable truths — verifiable assertions about the end state, not task descriptions.
+<!-- 1-3 sentences: observable end state, not backstory -->
+
+### Success criteria
+<!-- 3-5 bullets: each independently verifiable, no task descriptions -->
+
+### Notes
+<!-- Informal thoughts, observations, context — always writable -->
+
+### Open Questions
+<!-- Unknowns to resolve — feeds into Design. Move to Decisions when answered -->
 
 ## Design
-(Optional) Architectural decisions, key constraints, approach rationale.
+<!-- Available after scoping -->
+*Status: draft*
 
-## Tasks
-- [ ] **Task name**
-  - [ ] Subtask
-- [ ] **Another task** · after: Task name
-  - [ ] Subtask
+For complex work: `See [design-<slug>.md](../designs/design-<slug>.md)`
 
-## Progress
+## Implementation Plan
+<!-- Available after scoping -->
+*Status: draft*
 
-### Task Name
-**Status:** One-line summary of where this stands
-**Description:** What this task is and why (context beyond the title)
+<!-- checkboxes only — no bare bullets for actionable items -->
+<!-- Tasks use T<N> stable IDs. Decision refs use [implements: D1, D2]. Dependencies use (after: T1, T2). -->
+<!-- IDs are assigned once — never reassigned. Gaps are fine. See objective-conventions.md. -->
+- [ ] **T1: Task name** [implements: D1] (after: T2)
+  - Done: observable completion criterion
 
-**Open Questions:**
-- Unresolved things
+## Timeline
+<!-- Chronological log: what happened, why, outcome. APPEND-only. -->
+- YYYY-MM-DD: What — why — outcome
 
-**Decisions:**
-- Resolved choices and why
-
-**Investigations:**
-- [Finding title](../findings/finding-slug.md)
-
-**Timeline:**
-- YYYY-MM-DD: What happened — why — outcome
+## Mistakes
+<!-- one-liners: YYYY-MM-DD: What — why — severity. Link detail file if needed. -->
 
 ## Parking Lot
-- Out-of-scope items discovered during work
+<!-- 1 bullet per item, no elaboration -->
 ```

@@ -33,37 +33,63 @@ function getInstallDir(config) {
   return resolve(dir);
 }
 
-// Inject extra tools from config into agent frontmatter
+// Collect tools from a config map whose keys glob-match the agent name
+function collectMatchingTools(configMap, agentName) {
+  const collected = [];
+  for (const [pattern, tools] of Object.entries(configMap)) {
+    const re = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+    if (re.test(agentName)) collected.push(...tools);
+  }
+  return collected;
+}
+
+// Inject extra tools from config into agent frontmatter, then remove excluded tools
 function injectTools(filePath, config) {
-  const content = readFileSync(filePath, 'utf8');
+  let content = readFileSync(filePath, 'utf8');
   const toolsConfig = config.tools;
-  if (!toolsConfig) return;
+  const excludeConfig = config.excludeTools;
 
   // Extract agent name from frontmatter
   const nameMatch = content.match(/^name:\s*(.+)$/m);
   if (!nameMatch) return;
   const agentName = nameMatch[1].trim();
 
-  // Collect tools: wildcard + agent-specific
-  const extraTools = [
-    ...(toolsConfig['*'] || []),
-    ...(toolsConfig[agentName] || []),
-  ];
-  if (extraTools.length === 0) return;
+  // Phase 1: Inject tools (glob-matched from config.tools)
+  if (toolsConfig) {
+    const extraTools = collectMatchingTools(toolsConfig, agentName);
 
-  // Find the tools: line and append before closing ]
-  const toolsLineRe = /^(\s*\[.+)\]$/m;
-  const match = content.match(toolsLineRe);
-  if (!match) return;
+    if (extraTools.length > 0) {
+      const toolsLineRe = /^(\s*\[.+)\]$/m;
+      const match = content.match(toolsLineRe);
+      if (match) {
+        const existingTools = match[1].replace(/^\s*\[/, '').split(',').map(t => t.trim());
+        const newTools = extraTools.filter(t => !existingTools.includes(t));
+        if (newTools.length > 0) {
+          content = content.replace(toolsLineRe, `${match[1]}, ${newTools.join(', ')}]`);
+          console.log(`    + ${newTools.length} tools injected into ${agentName}`);
+        }
+      }
+    }
+  }
 
-  // Parse existing tools to avoid duplicates
-  const existingTools = match[1].replace(/^\s*\[/, '').split(',').map(t => t.trim());
-  const newTools = extraTools.filter(t => !existingTools.includes(t));
-  if (newTools.length === 0) return;
+  // Phase 2: Exclude tools (glob-matched from config.excludeTools)
+  if (excludeConfig) {
+    const excludeSet = new Set(collectMatchingTools(excludeConfig, agentName));
+    const toolsLineRe = /^(\s*)\[(.+)\]$/m;
+    const match = content.match(toolsLineRe);
+    if (match) {
+      const indent = match[1];
+      const allTools = match[2].split(',').map(t => t.trim()).filter(t => t);
+      const filtered = allTools.filter(t => !excludeSet.has(t));
+      const removed = allTools.length - filtered.length;
+      if (removed > 0) {
+        content = content.replace(toolsLineRe, `${indent}[${filtered.join(', ')}]`);
+        console.log(`    - ${removed} tools excluded from ${agentName}`);
+      }
+    }
+  }
 
-  const updated = content.replace(toolsLineRe, `${match[1]}, ${newTools.join(', ')}]`);
-  writeFileSync(filePath, updated);
-  console.log(`    + ${newTools.length} tools injected into ${agentName}`);
+  writeFileSync(filePath, content);
 }
 
 // ── Build ──────────────────────────────────────────────────────────────────────
@@ -90,8 +116,8 @@ function build() {
     console.log(`  src/${dir}/ → .github/${dir}/`);
   }
 
-  // Inject config tools into built agents
-  if (config.tools) {
+  // Inject/exclude config tools in built agents
+  if (config.tools || config.excludeTools) {
     const agentsDir = join(GITHUB_DIR, 'agents');
     if (existsSync(agentsDir)) {
       for (const file of readdirSync(agentsDir)) {

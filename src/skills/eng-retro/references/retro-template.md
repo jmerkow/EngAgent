@@ -8,33 +8,31 @@ Examples: `retro-2026-02-20T19-30-00-auth-debugging.md`, `retro-2026-02-13T22-00
 # Session Retro — {timestamp} — {slug}
 
 ## Session Context
-<!-- 2-4 sentences: what the user was working on, repos/files involved, rough scope -->
+<!-- 1-3 sentences: what the user was working on, scope -->
 
 ## Work Completed
-<!-- Bulleted list of concrete deliverables or actions taken -->
+<!-- 3-5 bullets: concrete deliverables -->
 
 ## Observations
 
 ### Agent Mistakes
-<!-- Format:
+<!-- one block per mistake, no prose between them -->
 - **[category]** Brief description
-  - What happened: ...
-  - What should have happened: ...
+  - What happened:
+  - What should have happened:
   - Severity: minor | moderate | major
--->
 
 ### Tooling & Workflow Gaps
-<!-- Format:
+<!-- one block per gap -->
 - **[category]** Brief description
-  - Pain point: ...
+  - Pain point:
   - Suggested improvement: skill | prompt | convention | tool | other
--->
 
 ### What Worked Well
-<!-- Brief notes on effective approaches worth reinforcing -->
+<!-- 3-5 bullets max -->
 
 ## Raw Tags
-<!-- Machine-friendly summary for grep/aggregation -->
+<!-- machine-friendly, one line each -->
 <!-- mistakes: [comma-separated categories] -->
 <!-- gaps: [comma-separated categories] -->
 <!-- severity-max: minor|moderate|major -->

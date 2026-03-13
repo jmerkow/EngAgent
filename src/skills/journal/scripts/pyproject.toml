@@ -1,0 +1,12 @@
+[project]
+name = "engagent-journal"
+version = "0.1.0"
+description = "Append-only work journal CLI"
+requires-python = ">=3.9"
+
+[project.scripts]
+journal = "journal:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
