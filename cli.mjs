@@ -4,12 +4,14 @@ import { existsSync, mkdirSync, cpSync, rmSync, readFileSync, writeFileSync, rea
 import { join, resolve, dirname } from 'node:path';
 import { homedir, platform } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { createInterface } from 'node:readline';
 
 const __filename = fileURLToPath(import.meta.url);
 const REPO_ROOT = dirname(__filename);
 
 const SRC_DIR = join(REPO_ROOT, 'src');
 const GITHUB_DIR = join(REPO_ROOT, '.github');
+const STAGING_DIR = join(REPO_ROOT, '.build-staging');
 const CONFIG_PATH = join(REPO_ROOT, 'config.json');
 const DEFAULT_INSTALL_DIR = join(homedir(), '.copilot', 'engagent');
 
@@ -115,9 +117,234 @@ function resolveExampleFiles(destDir) {
   }
 }
 
+// ── Tool diffing & resolution ──────────────────────────────────────────────────
+
+const TOOLS_LINE_RE = /^(\s*)\[(.+)\]$/m;
+
+function parseTools(filePath) {
+  const content = readFileSync(filePath, 'utf8');
+  const match = content.match(TOOLS_LINE_RE);
+  if (!match) return [];
+  return match[2].split(',').map(t => t.trim()).filter(Boolean);
+}
+
+function replaceTools(filePath, tools) {
+  let content = readFileSync(filePath, 'utf8');
+  const match = content.match(TOOLS_LINE_RE);
+  if (!match) return;
+  const indent = match[1];
+  content = content.replace(TOOLS_LINE_RE, `${indent}[${tools.join(', ')}]`);
+  writeFileSync(filePath, content);
+}
+
+function diffAgentTools(stagingAgentsDir, currentAgentsDir) {
+  const changes = {};
+  if (!existsSync(stagingAgentsDir)) return changes;
+
+  for (const file of readdirSync(stagingAgentsDir)) {
+    if (!file.endsWith('.agent.md')) continue;
+    const currentFile = join(currentAgentsDir, file);
+    if (!existsSync(currentFile)) continue;
+
+    const incoming = parseTools(join(stagingAgentsDir, file));
+    const current = parseTools(currentFile);
+
+    const inSet = new Set(incoming);
+    const curSet = new Set(current);
+    const added = incoming.filter(t => !curSet.has(t));
+    const removed = current.filter(t => !inSet.has(t));
+
+    if (added.length || removed.length) {
+      const agentName = file.replace('.agent.md', '');
+      changes[agentName] = { added, removed, incoming, current, file };
+    }
+  }
+  return changes;
+}
+
+function formatToolReport(changes) {
+  const agents = Object.keys(changes);
+  if (agents.length === 0) return '';
+
+  const WRAP = 100;
+  const RED = '\x1b[31m';
+  const GREEN = '\x1b[32m';
+  const DIM = '\x1b[2m';
+  const RESET = '\x1b[0m';
+
+  function groupByNamespace(tools) {
+    const groups = {};
+    for (const t of tools) {
+      const slash = t.indexOf('/');
+      const ns = slash > -1 ? t.slice(0, slash) : '(other)';
+      const name = slash > -1 ? t.slice(slash + 1) : t;
+      (groups[ns] ??= []).push(name);
+    }
+    return groups;
+  }
+
+  function formatGroups(prefix, groups, color) {
+    const lines = [];
+    for (const [ns, names] of Object.entries(groups)) {
+      let line = `    ${color}${prefix} ${DIM}${ns}/${RESET}${color}`;
+      for (let i = 0; i < names.length; i++) {
+        const sep = i < names.length - 1 ? ', ' : '';
+        if (line.length + names[i].length + sep.length > WRAP && i > 0) {
+          lines.push(line + RESET);
+          line = `    ${color}  `;
+        }
+        line += names[i] + sep;
+      }
+      lines.push(line + RESET);
+    }
+    return lines;
+  }
+
+  const lines = ['\nTool changes detected:\n'];
+  for (const agent of agents) {
+    const { added, removed } = changes[agent];
+    lines.push(`  ${agent}: (${removed.length} removed, ${added.length} added)`);
+    lines.push(...formatGroups('-', groupByNamespace(removed), RED));
+    lines.push(...formatGroups('+', groupByNamespace(added), GREEN));
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
+function ask(rl, question) {
+  return new Promise(resolve => rl.question(question, resolve));
+}
+
+async function promptResolution(changes) {
+  const agents = Object.keys(changes);
+  const resolutions = {};
+
+  const isTTY = process.stdin.isTTY;
+  if (!isTTY) {
+    console.log('  (non-interactive — defaulting to merge)');
+    for (const a of agents) resolutions[a] = 'merge';
+    return resolutions;
+  }
+
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+
+  try {
+    const answer = (await ask(rl,
+      'Resolve all agents: [I]ncoming / [C]urrent / [M]erge / [P]er-agent? '
+    )).trim().toLowerCase();
+
+    if (answer === 'p') {
+      for (const agent of agents) {
+        const { added, removed } = changes[agent];
+        const a = (await ask(rl,
+          `  ${agent} (+${added.length} -${removed.length}): [I]ncoming / [C]urrent / [M]erge? `
+        )).trim().toLowerCase();
+        resolutions[agent] = a === 'c' ? 'current' : a === 'm' ? 'merge' : 'incoming';
+      }
+    } else {
+      const choice = answer === 'c' ? 'current' : answer === 'm' ? 'merge' : 'incoming';
+      for (const a of agents) resolutions[a] = choice;
+    }
+  } finally {
+    rl.close();
+  }
+
+  return resolutions;
+}
+
+function applyResolution(stagingDir, currentAgentsDir, destDir, changes, resolutions) {
+  // Move staging → dest
+  const dirs = getManagedDirs();
+  for (const dir of dirs) {
+    const destPath = join(destDir, dir);
+    const stagingPath = join(stagingDir, dir);
+    if (existsSync(destPath)) rmSync(destPath, { recursive: true });
+    if (existsSync(stagingPath)) cpSync(stagingPath, destPath, { recursive: true });
+  }
+
+  // Also copy non-managed content that resolveExampleFiles wrote
+  const stagingInstructions = join(stagingDir, 'instructions');
+  const destInstructions = join(destDir, 'instructions');
+  if (existsSync(stagingInstructions)) {
+    if (existsSync(destInstructions)) rmSync(destInstructions, { recursive: true });
+    cpSync(stagingInstructions, destInstructions, { recursive: true });
+  }
+
+  // Patch tools per resolution
+  const agentsDir = join(destDir, 'agents');
+  for (const [agent, resolution] of Object.entries(resolutions)) {
+    const info = changes[agent];
+    if (!info) continue;
+    const filePath = join(agentsDir, info.file);
+    if (!existsSync(filePath)) continue;
+
+    if (resolution === 'current') {
+      replaceTools(filePath, info.current);
+      console.log(`  ${agent}: kept current tools`);
+    } else if (resolution === 'merge') {
+      const inSet = new Set(info.incoming);
+      const merged = [...info.incoming, ...info.current.filter(t => !inSet.has(t))];
+      replaceTools(filePath, merged);
+      console.log(`  ${agent}: merged tools (${merged.length} total)`);
+    } else {
+      console.log(`  ${agent}: using incoming tools`);
+    }
+  }
+}
+
+async function promptSaveConfig(resolutions, changes, config) {
+  const needsSave = Object.entries(resolutions).some(([, r]) => r !== 'incoming');
+  if (!needsSave || !process.stdin.isTTY) return;
+
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    const answer = (await ask(rl,
+      'Save resolutions to config.json (skip prompts next build)? [y/N] '
+    )).trim().toLowerCase();
+    if (answer !== 'y') return;
+  } finally {
+    rl.close();
+  }
+
+  if (!config.tools) config.tools = {};
+  if (!config.excludeTools) config.excludeTools = {};
+
+  for (const [agent, resolution] of Object.entries(resolutions)) {
+    if (resolution === 'incoming') continue;
+    const info = changes[agent];
+    if (!info) continue;
+
+    const inSet = new Set(info.incoming);
+    let resolved;
+    if (resolution === 'current') {
+      resolved = info.current;
+    } else {
+      resolved = [...info.incoming, ...info.current.filter(t => !inSet.has(t))];
+    }
+    const resolvedSet = new Set(resolved);
+
+    // Extra tools: in resolved but not in incoming → inject
+    const extras = resolved.filter(t => !inSet.has(t));
+    if (extras.length > 0) {
+      const existing = config.tools[agent] || [];
+      config.tools[agent] = [...new Set([...existing, ...extras])];
+    }
+
+    // Unwanted tools: in incoming but not in resolved → exclude
+    const unwanted = info.incoming.filter(t => !resolvedSet.has(t));
+    if (unwanted.length > 0) {
+      const existing = config.excludeTools[agent] || [];
+      config.excludeTools[agent] = [...new Set([...existing, ...unwanted])];
+    }
+  }
+
+  writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n');
+  console.log('  config.json updated.');
+}
+
 // ── Build ──────────────────────────────────────────────────────────────────────
 
-function build() {
+async function build() {
   console.log('Building .github/ from src/...');
   const config = loadConfig();
 
@@ -127,24 +354,21 @@ function build() {
     return;
   }
 
+  // Phase 1: Build to staging
+  if (existsSync(STAGING_DIR)) rmSync(STAGING_DIR, { recursive: true });
+  mkdirSync(STAGING_DIR, { recursive: true });
+
   for (const dir of dirs) {
     const srcPath = join(SRC_DIR, dir);
-    const destPath = join(GITHUB_DIR, dir);
-
-    // Clean destination, then recursive copy
-    if (existsSync(destPath)) {
-      rmSync(destPath, { recursive: true });
-    }
-    cpSync(srcPath, destPath, { recursive: true });
-    console.log(`  src/${dir}/ → .github/${dir}/`);
+    const stagingPath = join(STAGING_DIR, dir);
+    cpSync(srcPath, stagingPath, { recursive: true });
+    console.log(`  src/${dir}/ → staging/${dir}/`);
   }
 
-  // Resolve .example.instructions.md → user override or renamed default
-  resolveExampleFiles(join(GITHUB_DIR, 'instructions'));
+  resolveExampleFiles(join(STAGING_DIR, 'instructions'));
 
-  // Inject/exclude config tools in built agents
   if (config.tools || config.excludeTools) {
-    const agentsDir = join(GITHUB_DIR, 'agents');
+    const agentsDir = join(STAGING_DIR, 'agents');
     if (existsSync(agentsDir)) {
       for (const file of readdirSync(agentsDir)) {
         if (file.endsWith('.agent.md')) {
@@ -153,6 +377,29 @@ function build() {
       }
     }
   }
+
+  // Phase 2: Diff tools against current .github
+  const stagingAgents = join(STAGING_DIR, 'agents');
+  const currentAgents = join(GITHUB_DIR, 'agents');
+  const changes = diffAgentTools(stagingAgents, currentAgents);
+  const hasChanges = Object.keys(changes).length > 0;
+
+  let resolutions = {};
+  if (hasChanges) {
+    console.log(formatToolReport(changes));
+    resolutions = await promptResolution(changes);
+  }
+
+  // Phase 3: Apply
+  applyResolution(STAGING_DIR, currentAgents, GITHUB_DIR, changes, resolutions);
+
+  // Phase 4: Offer to save
+  if (hasChanges) {
+    await promptSaveConfig(resolutions, changes, config);
+  }
+
+  // Phase 5: Cleanup
+  rmSync(STAGING_DIR, { recursive: true, force: true });
 
   console.log('Build complete.');
 }
@@ -339,11 +586,11 @@ if (!command || !commands[command]) {
   console.log(`Usage: node cli.mjs <command>
 
 Commands:
-  build      Copy src/ → .github/ (agents, prompts, skills)
+  build      Copy src/ → .github/ (agents, prompts, skills) with interactive tool review
   install    Symlink .github/ to ~/.copilot/engagent/ + register VS Code settings
   uninstall  Remove symlinks and VS Code settings entries
 `);
   process.exit(command ? 1 : 0);
 }
 
-commands[command]();
+await commands[command]();

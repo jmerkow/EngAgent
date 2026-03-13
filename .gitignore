@@ -9,6 +9,7 @@ scratch/
 .github/prompts/
 .github/skills/
 .github/instructions/
+.build-staging/
 
 # User config (see config.example.json)
 config.json
