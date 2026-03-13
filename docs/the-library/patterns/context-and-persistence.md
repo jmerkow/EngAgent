@@ -310,7 +310,7 @@ These platforms demonstrate that **as agent systems scale to multi-user and mult
 
 - [agentskills.io](https://agentskills.io/) — Agent Skills open standard (`SKILL.md`)
 - [AGENTS.md specification](https://github.com/agentsmd/agents.md) — open standard for agent instruction files
-- CoALA paper — Cognitive Architectures for Language Agents (LangMem's theoretical basis)
+- [CoALA: Cognitive Architectures for Language Agents](https://arxiv.org/abs/2405.15793) — LangMem's theoretical basis
 
 ## See Also
 
