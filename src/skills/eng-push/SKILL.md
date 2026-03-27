@@ -9,6 +9,10 @@ description: Push and sync lifecycle for .eng/ directories backed by EngDirs (a 
 
 When configured, `.eng/` directories are backed by a private GitHub repo (EngDirs) using orphan branches — one branch per project, named `projects/{name}`. This skill covers the push/sync lifecycle. For document format and structure, see **eng-docs**.
 
+## Setup Workflow
+
+For first-time EngDirs setup, see [references/init-engdirs.md](references/init-engdirs.md).
+
 ## Repo Structure
 
 ```
@@ -53,7 +57,7 @@ A pre-commit hook validates `.eng/` content before each commit:
 - **Frontmatter exists:** files in `objectives/`, `findings/`, `retros/` must start with `---`
 - Violations block the commit. Use `git commit --no-verify` to bypass.
 
-The hook is installed by `/eng-push-init` via symlink from `.eng/.git/hooks/pre-commit` to the skill's script.
+The hook is installed by the init workflow in [references/init-engdirs.md](references/init-engdirs.md) via symlink from `.eng/.git/hooks/pre-commit` to the skill's script.
 
 ## Common Failure Modes
 

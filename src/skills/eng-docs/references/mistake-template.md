@@ -10,7 +10,7 @@ created: YYYY-MM-DD
 parent: objective-<slug>.md
 agent: <agent-name>
 severity: minor | moderate | major
-trigger: self-report | /eng-wtf | frustration
+trigger: self-report | mistake-capture | frustration
 ---
 
 # Mistake: Title

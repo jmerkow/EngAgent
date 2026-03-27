@@ -1,6 +1,6 @@
 ---
 name: eng-check
-description: Validate .eng/ documents against templates for format compliance, bloat, and cold-read clarity. Use when checking document quality, compressing verbose docs, or reviewing before handoff.
+description: Validate and repair .eng/ documents against templates for format compliance, migrations, backfill, bloat, and cold-read clarity. Use when checking document quality, repairing docs, or reviewing before handoff.
 ---
 
 # eng-check — Document Validation
@@ -13,6 +13,10 @@ Load this skill, then provide a file path and optional mode:
 
 - **Default (compliance):** Check format, length hints, bloat, duplication against the relevant template.
 - **Cold read:** Check whether a fresh agent with no conversation history could pick up this document and act.
+
+## Maintenance Workflows
+
+For broader `.eng/` repair work — validate, migrate, backfill, or reconstruct missing progress — see [references/maintenance-workflows.md](references/maintenance-workflows.md).
 
 ## Compliance Check
 

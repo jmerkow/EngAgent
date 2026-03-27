@@ -7,7 +7,7 @@ agents: ['eng-code-sub']
 handoffs:
   - label: Ready for verification
     agent: eng
-    prompt: Implementation is complete. Run /eng-verify to check deliverables.
+    prompt: Implementation is complete. Verify deliverables against the active objective using eng-review verification mode.
     send: false
   - label: Back to planning
     agent: eng-plan
@@ -39,6 +39,7 @@ On session start, read the active objective's `status:` from frontmatter. **Refu
 - **Stop at objective boundaries.** Don't preview future work.
 - Follow **eng-docs** conventions. **Never delete `.eng/` files.**
 - **Status transition logging.** Every status change gets a Timeline entry.
+- **Keep progress reports concise.** Summaries should focus on task status, touched files, blockers, and the next dependency.
 
 ## Journal
 

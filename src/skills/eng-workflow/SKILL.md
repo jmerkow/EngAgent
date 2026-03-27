@@ -1,6 +1,6 @@
 ---
 name: eng-workflow
-description: Workflow phases, status values, and gate checklists. The single source of truth for how objectives move through scoping → planning → implementation → verification. Loaded by eng, eng-plan, eng-code.
+description: Workflow phases, status values, gate checklists, and objective kickoff. Use when starting a new objective or moving work through scoping → planning → implementation → verification.
 ---
 
 # Workflow
@@ -18,13 +18,22 @@ description: Workflow phases, status values, and gate checklists. The single sou
 | `deferred` | — | Paused | Back to backlog (reason required) |
 | `cancelled` | — | Abandoned | Not doing this (reason required) |
 
-Gate checks use `>=` on the ordinal: e.g., `/eng-go` requires status >= `approved` (2).
+Gate checks use `>=` on the ordinal: implementation kickoff requires status >= `approved` (2).
 
 Terminal states (`deferred`, `cancelled`) have no ordinal — they exit the workflow. Both require a reason in the Timeline.
 
 ## Phase behavior
 
 On session start, read the active objective's `status:` from frontmatter. Match to the phase above. Adjust behavior accordingly — scoping agents refuse implementation work, implementation agents refuse if status < approved.
+
+## Entry Workflows
+
+- **Starting a new objective:** [references/new-objective.md](references/new-objective.md)
+
+## Exploration Entry Point
+
+- If there is no active objective and no active whiteboard, create `.eng/whiteboard/<date>-<slug>.md` first.
+- A whiteboard is just a place to think. No gates, no status, no required transitions.
 
 ## Gates
 

@@ -1,6 +1,6 @@
 ---
 name: eng-docs
-description: Engineering documentation registry — file types, schemas, naming, and template pointers for .eng/ directories. For workflow phases and gates, see eng-workflow. For objective conventions (task format, zones, mutability), see references/objective-conventions.md. For design conventions, see references/design-conventions.md.
+description: Engineering documentation registry — file types, schemas, naming, whiteboard, scaffold/init, and mistake-capture workflows for .eng/ directories. For workflow phases and gates, see eng-workflow. For objective conventions (task format, zones, mutability), see references/objective-conventions.md. For design conventions, see references/design-conventions.md.
 ---
 
 # Engineering Documentation System
@@ -16,12 +16,36 @@ description: Engineering documentation registry — file types, schemas, naming,
     ├── mistakes/       # detailed mistake logs (linked from objectives)
     ├── retros/         # session retrospectives (see eng-retro skill)
     ├── scratch/        # working notes, drafts — low-ceremony, temporary
+    ├── whiteboard/     # exploratory work before objective creation or direct execution
     └── archive/        # completed/superseded docs
 ```
 
 `.eng/` is gitignored. Use terminal commands or `includeIgnoredFiles: true` when searching.
 
+## Operational Workflows
+
+- **Initial scaffold + validation:** [references/init-scaffold.md](references/init-scaffold.md) and [scripts/validate-eng.sh](scripts/validate-eng.sh)
+- **Detailed mistake capture:** [references/mistake-capture.md](references/mistake-capture.md)
+- **Whiteboard entry point:** [references/whiteboard-template.md](references/whiteboard-template.md)
+
 ## File Types
+
+### Whiteboards
+
+**Purpose:** Low-ceremony exploratory work before objective creation or direct execution. This is the default starting point when no active objective exists.
+
+```yaml
+---
+created: YYYY-MM-DD
+---
+```
+
+**Template:** [references/whiteboard-template.md](references/whiteboard-template.md)
+
+Rules:
+- Filename: `<date>-<slug>.md`
+- No `status` field
+- All sections are optional — let structure emerge naturally
 
 ### Objectives
 
@@ -79,7 +103,7 @@ created: YYYY-MM-DD
 parent: objective-<slug>.md
 agent: <agent-name>
 severity: minor | moderate | major
-trigger: self-report | /eng-wtf | frustration
+trigger: self-report | mistake-capture | frustration
 ---
 ```
 
@@ -87,6 +111,7 @@ trigger: self-report | /eng-wtf | frustration
 
 ## Naming Conventions
 
+- **Whiteboards:** `<date>-<slug>.md`
 - **Objectives:** `objective-<slug>.md`
 - **Designs:** `design-<slug>.md`
 - **Findings:** `finding-<slug>.md`
@@ -96,7 +121,7 @@ trigger: self-report | /eng-wtf | frustration
 
 ## Terminology
 
-"Plan", "objective", and "obj" are synonyms. File format is always `objective-<slug>.md`.
+File format is always `objective-<slug>.md`.
 
 ## Universal Rules
 

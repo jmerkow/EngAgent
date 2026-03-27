@@ -16,6 +16,12 @@ parent: <objective-filename.md>
 ## Context
 <!-- 1-3 sentences: what question or problem prompted this -->
 
+### Assumptions
+<!-- scoping assumptions with source labels: user-confirmed, agent-assumed, inferred-from-context -->
+
+## Research Plan
+<!-- sub-questions, source targets, classification, reasoning context. Populated before investigation begins. -->
+
 ## Findings
 <!-- structure as needed: subsections, tables, comparisons. No prose summaries of things better shown in a table. -->
 
