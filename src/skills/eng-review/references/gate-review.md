@@ -4,7 +4,7 @@ Review the active objective, probe for weaknesses, and advance the gate when con
 
 ## Discovery
 
-Find the active objective: `grep -rl 'status: draft\|status: in-review' .eng/objectives/`. If multiple, ask which one.
+Find the active objective: `grep -rl 'status: draft\|status: in-review' .eng/objectives/ .eng/workstreams/`. If multiple, ask which one.
 
 ## Context-aware review
 

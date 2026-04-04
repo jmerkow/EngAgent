@@ -4,7 +4,7 @@ Use this mode when implementation is done or nearly done and the objective needs
 
 ## Discovery
 
-Find the active objective: `grep -rl 'status: in-progress\|status: needs-verify' .eng/objectives/`. If multiple, ask which one. Read it.
+Find the active objective: `grep -rl 'status: in-progress\|status: needs-verify' .eng/objectives/ .eng/workstreams/`. If multiple, ask which one. Read it.
 
 ## Workflow
 

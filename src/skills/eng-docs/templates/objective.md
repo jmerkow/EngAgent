@@ -1,6 +1,7 @@
 # Objective Template
 
-File location: `.eng/objectives/objective-<slug>.md`
+Filename: `objective-<slug>.md`
+Location: `.eng/objectives/`
 
 ```markdown
 ---

@@ -1,6 +1,7 @@
 # Mistake Log Template
 
-File location: `.eng/mistakes/mistake-<slug>-YYYY-MM-DD.md`
+Filename: `mistake-<slug>-YYYY-MM-DD.md`
+Location: `.eng/mistakes/`
 
 For mistakes too complex for a one-liner in `## Mistakes`. Most mistakes stay inline — use this only when the mechanism or prevention needs explanation.
 

@@ -16,7 +16,7 @@ Load this skill, then provide a file path and optional mode:
 
 ## Maintenance Workflows
 
-For broader `.eng/` repair work — validate, migrate, backfill, or reconstruct missing progress — see [references/maintenance-workflows.md](references/maintenance-workflows.md).
+For broader `.eng/` repair work — validate, migrate, backfill, or reconstruct missing progress — see the **eng-docs** skill's [references/maintenance-workflows.md](../eng-docs/references/maintenance-workflows.md).
 
 ## Compliance Check
 

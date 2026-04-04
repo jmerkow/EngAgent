@@ -1,140 +1,36 @@
 ---
 name: eng-docs
-description: Engineering documentation registry — file types, schemas, naming, whiteboard, scaffold/init, and mistake-capture workflows for .eng/ directories. For workflow phases and gates, see eng-workflow. For objective conventions (task format, zones, mutability), see references/objective-conventions.md. For design conventions, see references/design-conventions.md.
+description: Engineering documentation registry — file types, schemas, templates, and conventions for .eng/ directories. For workflow phases and gates, see eng-workflow. For objective conventions, see references/objective-conventions.md. For design conventions, see references/design-conventions.md.
 ---
 
-# Engineering Documentation System
+# Engineering Documentation
 
-## Directory Structure
+## Init
 
-```
-<project-root>/
-└── .eng/
-    ├── objectives/     # central hub for each piece of work
-    ├── designs/        # design docs for complex work
-    ├── findings/       # investigation results, analysis
-    ├── mistakes/       # detailed mistake logs (linked from objectives)
-    ├── retros/         # session retrospectives (see eng-retro skill)
-    ├── scratch/        # working notes, drafts — low-ceremony, temporary
-    ├── whiteboard/     # exploratory work before objective creation or direct execution
-    └── archive/        # completed/superseded docs
-```
+Create `.eng/`, add to parent `.gitignore`, and `git init` inside it. `.eng/` is its own git repo — commit early and often. Subdirectories are created as needed. Use terminal commands or `includeIgnoredFiles: true` when searching `.eng/`.
 
-`.eng/` is gitignored. Use terminal commands or `includeIgnoredFiles: true` when searching.
+## Document Types
 
-## Operational Workflows
+| Type | When to use | Template | Conventions |
+|------|-------------|----------|-------------|
+| Whiteboard | Exploratory work, nothing active | [templates/whiteboard.md](templates/whiteboard.md) | — |
+| Objective | Track a piece of work | [templates/objective.md](templates/objective.md) | [references/objective-conventions.md](references/objective-conventions.md) |
+| Design | Lock decisions for complex work | [templates/design.md](templates/design.md) | [references/design-conventions.md](references/design-conventions.md) |
+| Finding | Investigation results | [templates/findings.md](templates/findings.md) | — |
+| Mistake | Detailed mistake write-up | [templates/mistake.md](templates/mistake.md) | [references/mistake-capture.md](references/mistake-capture.md) |
+| Scratch | Working notes, throwaway | (no template) | — |
+| Workstream | Co-located artifacts for one effort | (see **eng-workstream**) | — |
 
-- **Initial scaffold + validation:** [references/init-scaffold.md](references/init-scaffold.md) and [scripts/validate-eng.sh](scripts/validate-eng.sh)
-- **Detailed mistake capture:** [references/mistake-capture.md](references/mistake-capture.md)
-- **Whiteboard entry point:** [references/whiteboard-template.md](references/whiteboard-template.md)
+## Validation
 
-## File Types
-
-### Whiteboards
-
-**Purpose:** Low-ceremony exploratory work before objective creation or direct execution. This is the default starting point when no active objective exists.
-
-```yaml
----
-created: YYYY-MM-DD
----
-```
-
-**Template:** [references/whiteboard-template.md](references/whiteboard-template.md)
-
-Rules:
-- Filename: `<date>-<slug>.md`
-- No `status` field
-- All sections are optional — let structure emerge naturally
-
-### Objectives
-
-**Purpose:** Central tracking document for a piece of work — scope, design, tasks, timeline.
-
-```yaml
----
-created: YYYY-MM-DD
-status: draft       # draft | in-review | approved | in-progress | needs-verify | completed | deferred | cancelled
-project: <name>
-parent: <filename>  # optional — parent objective
-references: []      # optional — related docs
----
-```
-
-**Template:** [references/objective-template.md](references/objective-template.md)
-**Conventions:** [references/objective-conventions.md](references/objective-conventions.md) — task format, stable IDs, zones/mutability, success criteria
-
-### Design Docs
-
-**Purpose:** Locked decisions for complex work — what to do, what breaks if violated, how to verify.
-
-```yaml
----
-created: YYYY-MM-DD
-status: draft       # draft | in-review | approved | deferred | cancelled
-parent: objective-<slug>.md
----
-```
-
-**Template:** [references/design-template.md](references/design-template.md)
-**Conventions:** [references/design-conventions.md](references/design-conventions.md) — tiers, decision format, status lifecycle
-
-### Findings
-
-**Purpose:** Investigation results and analysis, linked from objectives.
-
-```yaml
----
-created: YYYY-MM-DD
-project: <name>
-parent: <objective-filename.md>
----
-```
-
-**Template:** [references/findings-template.md](references/findings-template.md)
-
-### Mistake Logs
-
-**Purpose:** Detailed write-ups for mistakes too big for a one-liner in `## Mistakes`.
-
-```yaml
----
-created: YYYY-MM-DD
-parent: objective-<slug>.md
-agent: <agent-name>
-severity: minor | moderate | major
-trigger: self-report | mistake-capture | frustration
----
-```
-
-**Template:** [references/mistake-template.md](references/mistake-template.md)
-
-## Naming Conventions
-
-- **Whiteboards:** `<date>-<slug>.md`
-- **Objectives:** `objective-<slug>.md`
-- **Designs:** `design-<slug>.md`
-- **Findings:** `finding-<slug>.md`
-- **Mistake logs:** `mistake-<slug>-YYYY-MM-DD.md`
-- **Retros:** see **eng-retro** skill
-- **Archive:** move as-is, or with date suffix: `objective-old.2026-02-07.md`
-
-## Terminology
-
-File format is always `objective-<slug>.md`.
+For document validation and cold-read checks, use the **eng-check** skill.
+For maintenance workflows (migrate, backfill, reconstruct), see [references/maintenance-workflows.md](references/maintenance-workflows.md).
 
 ## Universal Rules
 
-- Every `.eng/` document has YAML frontmatter.
-- Objectives are living documents — edit in place, don't create versions.
-- Only use `parent` and `references` for linking. No `children` or `related` fields.
-- **Single source of truth.** One location is authoritative; others use a one-line summary + link.
-- **Never delete `.eng/` files.** `.eng/` is gitignored — `rm` is permanent. Always `mv` to `.eng/archive/`.
-- **Verify before destructive operations.** Verify inputs before running.
-- **Cold read.** Every document should be understandable by a fresh agent with no conversation history.
-
-## Related Skills
-
-- **eng-workflow** — phases, gates, status lifecycle
-- **eng-retro** — retro format, categories, analysis
-- **eng-check** — document validation, cold-read checks
+- YAML frontmatter on every `.eng/` document.
+- Edit in place — don't create versions.
+- Single source of truth — one-line summary + link, never copy.
+- Cold read — every document understandable by a fresh agent with no history.
+- `parent` and `references` for linking. No `children` or `related` fields.
+- **Don't lose work.** Commit before deleting. `git rm` is safe (history preserves it). Never `rm` uncommitted files commit first.

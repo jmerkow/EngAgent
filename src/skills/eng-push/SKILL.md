@@ -1,45 +1,38 @@
 ---
 name: eng-push
-description: Push and sync lifecycle for .eng/ directories backed by EngDirs (a central git repo with orphan branches per project). Covers init, commit, push, pre-commit validation, and common failure modes. Use when setting up EngDirs for a project, committing .eng/ content, pushing to remote, or troubleshooting sync issues.
+description: EngDirs sync lifecycle for `.eng/` directories backed by a central GitHub repo with one orphan branch per project. Use when initializing EngDirs for a project, committing or pushing `.eng/` changes, checking the pre-commit hook, setting an upstream branch, recovering from detached HEAD, or troubleshooting EngDirs auth and `git push` failures such as 403 or permission denied.
 ---
 
-# eng-push — .eng/ Git Sync
+# EngDirs Push and Sync
+
+This skill covers the `.eng/` Git sync lifecycle. Use **eng-docs** for `.eng/` document format and structure.
 
 ## Overview
 
-When configured, `.eng/` directories are backed by a private GitHub repo (EngDirs) using orphan branches — one branch per project, named `projects/{name}`. This skill covers the push/sync lifecycle. For document format and structure, see **eng-docs**.
+- Stay in this file for day-to-day commit/push work, hook behavior, and the failure modes below.
+- Read [references/init-engdirs.md](references/init-engdirs.md) when the task is first-time EngDirs setup or re-running init for an existing `.eng/`.
+- For merge conflicts, diverged history, or anything outside the documented cases here, stop and ask the user.
 
 ## Setup Workflow
 
-For first-time EngDirs setup, see [references/init-engdirs.md](references/init-engdirs.md).
+For first-time EngDirs setup, read [references/init-engdirs.md](references/init-engdirs.md) and follow it exactly.
+
+Read [scripts/init-engdirs.sh](scripts/init-engdirs.sh) only when the init workflow fails or you need to explain the script's exact behavior.
 
 ## Repo Structure
 
-```
-EngDirs repo (private)
-├── main                          # README, mdBook config (later)
-├── projects/ProjectA (orphan)     # .eng/ content for ProjectA
-├── projects/ProjectB (orphan)     # .eng/ content for ProjectB
-└── ...
-```
-
-Each orphan branch mirrors the `.eng/` directory layout:
-```
-objectives/
-findings/
-retros/
-archive/
-scratch/
-```
+EngDirs uses:
+- `main` for repo-level docs and shared config
+- `projects/{name}` orphan branches for project-specific `.eng/` content
 
 ## Commit and Push
 
 **Commit frequently, push judiciously.**
 
-- Commit after any meaningful `.eng/` write — objectives updated, findings written, tasks checked off. Cost is near zero (private repo, orphan branches, working notes).
-- Push less often: end of session, logical checkpoint, or before switching context.
-- Use `git rebase -i` / fixup to squash small commits before pushing when clean history matters.
-- No commit message validation — these are working notes. Keep messages descriptive but don't overthink them.
+1. Commit after any meaningful `.eng/` write — objectives updated, findings written, tasks checked off.
+2. Push at the end of a session, at a logical checkpoint, or before switching context.
+3. If clean history matters, squash or fixup small local commits before pushing.
+4. Keep commit messages descriptive; there is no commit-message validation.
 
 ### Commands
 
@@ -49,7 +42,13 @@ git add -A && git commit -m "Update objective progress"
 git push
 ```
 
+Success looks like:
+- the commit is created locally without hook errors
+- `git push` completes on `projects/{name}` without upstream or auth failures
+
 ## Pre-commit Hook
+
+Read [scripts/pre-commit](scripts/pre-commit) when a commit is blocked and you need the exact validation rules.
 
 A pre-commit hook validates `.eng/` content before each commit:
 
@@ -68,10 +67,10 @@ The hook is installed by the init workflow in [references/init-engdirs.md](refer
 **Cause:** HTTPS token expired or SSH key not configured for the EngDirs repo.
 
 **Fix:**
-- HTTPS: re-authenticate with `gh auth login` or update the credential helper
-- SSH: verify `ssh -T git@github.com` works; add key if not
+- HTTPS: re-authenticate with `gh auth login` or update the credential helper.
+- SSH: verify `ssh -T git@github.com` works; add a key if not.
 
-If auth issues persist, punt to the user — don't attempt credential management.
+If auth issues persist, stop and ask the user. Don't attempt credential management.
 
 ### Detached HEAD
 
@@ -88,6 +87,8 @@ git checkout -b projects/{name} HEAD
 git push -u origin projects/{name}
 ```
 
+Success looks like: `git branch --show-current` returns `projects/{name}`.
+
 ### Upstream not set
 
 **Symptom:** `git push` says "fatal: The current branch has no upstream branch."
@@ -97,11 +98,14 @@ git push -u origin projects/{name}
 git push -u origin projects/{name}
 ```
 
+Success looks like: later plain `git push` works without `-u`.
+
 ## Anything Else
 
 For merge conflicts, diverged history, or anything not covered above: **stop and ask the user.** EngDirs content is low-volume and rarely conflicts — complex git issues likely indicate a setup problem that needs human judgment.
 
 ## Scripts
 
-- [scripts/init-engdirs.sh](scripts/init-engdirs.sh) — one-time setup: init git, create orphan branch, set remote, push
-- [scripts/pre-commit](scripts/pre-commit) — pre-commit hook for naming and frontmatter validation
+- [references/init-engdirs.md](references/init-engdirs.md) — read for first-time setup or re-running init; includes prerequisites, parameters, and verification
+- [scripts/init-engdirs.sh](scripts/init-engdirs.sh) — one-time setup: init git, create orphan branch, set remote, push, install pre-commit hook
+- [scripts/pre-commit](scripts/pre-commit) — read when diagnosing blocked commits or exact naming/frontmatter validation

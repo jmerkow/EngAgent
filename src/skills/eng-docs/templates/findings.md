@@ -1,6 +1,7 @@
 # Findings Template
 
-File location: `.eng/findings/finding-<slug>.md`
+Filename: `finding-<slug>.md`
+Location: `.eng/findings/`
 
 One topic per finding. Linked from the objective's Investigations field.
 

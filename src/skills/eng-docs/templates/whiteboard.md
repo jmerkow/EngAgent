@@ -1,6 +1,7 @@
 # Whiteboard Template
 
-File location: `.eng/whiteboard/<date>-<slug>.md`
+Filename: `<date>-<slug>.md`
+Location: `.eng/whiteboard/`
 
 ```markdown
 ---
@@ -21,6 +22,6 @@ created: YYYY-MM-DD
 
 ## Rules
 
-- All sections are optional.
+- No `status` field in frontmatter.
+- All sections are optional — let structure emerge naturally.
 - Add any sections that make sense.
-- Let structure emerge naturally.

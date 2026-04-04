@@ -4,7 +4,7 @@ Use this mode after verification has passed and the user is ready to close the o
 
 ## Workflow
 
-1. Discover the objective. Find `status: needs-verify` objectives in `.eng/objectives/`. If none exist, refuse and suggest verification first.
+1. Discover the objective. Find `status: needs-verify` objectives in `.eng/objectives/` and `.eng/workstreams/`. If none exist, refuse and suggest verification first.
 2. Check the gate. Status must be >= `needs-verify`.
 3. Confirm with the user. Summarize what was verified and ask for sign-off.
 4. Update the objective:

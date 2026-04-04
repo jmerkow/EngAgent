@@ -4,7 +4,7 @@ Use this workflow when the user explicitly wants a new tracked objective.
 
 ## Workflow
 
-1. Check for existing objectives in `.eng/objectives/` so you don't duplicate tracked work.
+1. Check for existing objectives in `.eng/objectives/` and `.eng/workstreams/` so you don't duplicate tracked work.
 2. Create the objective using the **eng-docs** objective template.
 3. Set frontmatter:
    - `created`: today's date

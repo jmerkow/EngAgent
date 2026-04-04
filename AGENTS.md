@@ -13,8 +13,9 @@ src/                          # Source files (edit here)
 config.json                   # Local config (install dir, tool injection)
 ```
 
-- `src/` is the source of truth. Run `node cli.mjs build` to copy `src/` → `.github/`. Don't edit `.github/` directly (except `hooks/`).
-- **Build is destructive** — it deletes `.github/` subdirectories before copying. `.github/` may be a symlink. Verify source files are correct before building.
+- `src/` is the source of truth. Run `node cli.mjs build` to copy `src/` → `eng-agent-build/`. Don't edit `eng-agent-build/` or install destinations directly.
+- **`--workspace` flag**: `node cli.mjs install --workspace` installs into `.github/` instead of `~/.copilot/engagent/`.
+- **Build is manifest-safe** — on the first build after a fresh checkout, managed subdirectories are replaced. On subsequent builds, only files tracked in `eng-agent-build/manifest.engagent.json` are removed before re-copying; files you add outside those tracked paths survive rebuilds.
 
 ## The Library
 

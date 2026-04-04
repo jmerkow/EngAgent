@@ -1,6 +1,7 @@
 # Design Doc Template
 
-File location: `.eng/designs/design-<slug>.md`
+Filename: `design-<slug>.md`
+Location: `.eng/designs/`
 
 ```markdown
 ---
