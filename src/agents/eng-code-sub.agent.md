@@ -4,6 +4,7 @@ description: Coding worker — executes a focused implementation task within a t
 tools:
   [execute/getTerminalOutput, execute/awaitTerminal, execute/runInTerminal, read/terminalSelection, read/terminalLastCommand, read/problems, read/readFile, edit/createFile, edit/editFiles, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, todo]
 user-invocable: false
+model: [GPT-5.4 (copilot), Claude Opus 4.5 (copilot), Claude Opus 4.6 (copilot)]
 ---
 
 # Coding Sub-Agent

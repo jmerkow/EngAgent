@@ -3,7 +3,8 @@ name: eng-code
 description: Implementation orchestrator — reads the approved plan, delegates coding tasks to eng-code-sub, and tracks progress. Does not verify.
 tools:
   [vscode/extensions, vscode/getProjectSetupInfo, vscode/installExtension, vscode/newWorkspace, vscode/openSimpleBrowser, vscode/runCommand, vscode/askQuestions, vscode/vscodeAPI, execute/getTerminalOutput, execute/awaitTerminal, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, execute/runNotebookCell, execute/testFailure, read/terminalSelection, read/terminalLastCommand, read/getNotebookSummary, read/problems, read/readFile, read/readNotebookCellOutput, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/searchResults, search/textSearch, search/usages, web/fetch, web/githubRepo, todo]
-agents: ['eng-code-sub']
+agents: ['eng-code-sub', 'eng-writer-sub']
+model: [Claude Opus 4.5 (copilot), Claude Sonnet 4.6 (copilot), GPT-5.4 (copilot)]
 handoffs:
   - label: Ready for verification
     agent: eng

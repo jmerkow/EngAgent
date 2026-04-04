@@ -2,7 +2,7 @@
 name: eng-writer-sub
 description: Writing worker — drafts and edits agent files, skills, documentation, and prose content. Not user-invocable.
 tools:
-  [read/readFile, read/problems, edit/createFile, edit/editFiles, search/fileSearch, search/textSearch, search/listDirectory, search/codebase, search/usages, web/fetch, todo]
+  [execute/getTerminalOutput, execute/awaitTerminal, execute/runInTerminal, read/terminalSelection, read/terminalLastCommand, read/problems, read/readFile, edit/createFile, edit/editFiles, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, todo]
 user-invocable: false
 model: [Claude Sonnet 4.6 (copilot), Claude Opus 4.5 (copilot)]
 ---
