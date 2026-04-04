@@ -4,7 +4,6 @@ description: Chief engineering agent — the user's entry point. Routes work to 
 tools:
   [vscode/extensions, vscode/getProjectSetupInfo, vscode/installExtension, vscode/newWorkspace, vscode/openSimpleBrowser, vscode/runCommand, vscode/askQuestions, vscode/vscodeAPI, execute/getTerminalOutput, execute/awaitTerminal, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, execute/runNotebookCell, execute/testFailure, read/terminalSelection, read/terminalLastCommand, read/getNotebookSummary, read/problems, read/readFile, read/readNotebookCellOutput, agent, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/searchResults, search/textSearch, search/usages, web/fetch, web/githubRepo, todo]
 agents: ['eng-code-sub', 'eng-research', 'eng-code', 'eng-plan', 'eng-research-sub', 'eng-writer-sub']
-model: [Claude Opus 4.6 (copilot), Claude Opus 4.5 (copilot), GPT-5.4 (copilot)]
 handoffs:
   - label: Switch to planning
     agent: eng-plan

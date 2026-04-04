@@ -4,7 +4,7 @@ description: Planning-only engineering agent — scopes problems, designs soluti
 tools:
   [vscode/extensions, vscode/getProjectSetupInfo, vscode/installExtension, vscode/newWorkspace, vscode/openSimpleBrowser, vscode/runCommand, vscode/askQuestions, vscode/vscodeAPI, execute/getTerminalOutput, execute/awaitTerminal, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, execute/runNotebookCell, execute/testFailure, read/terminalSelection, read/terminalLastCommand, read/getNotebookSummary, read/problems, read/readFile, read/readNotebookCellOutput, agent, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/searchResults, search/textSearch, search/usages, web/fetch, web/githubRepo, vscode.mermaid-chat-features/renderMermaidDiagram, todo]
 agents: ['eng-research', 'eng-research-sub', 'eng-writer-sub']
-model: [Claude Opus 4.5 (copilot), Claude Sonnet 4.6 (copilot), GPT-5.4 (copilot)]
+model: [Claude Sonnet 4.6 (copilot), Claude Opus 4.5 (copilot), GPT-5.4 (copilot), Claude Opus 4.6 (1M context)(Internal only) (copilot)]
 handoffs:
   - label: Approve & implement
     agent: eng-code

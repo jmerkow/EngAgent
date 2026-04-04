@@ -4,7 +4,7 @@ description: Deep research agent — scopes questions, plans searches, investiga
 tools:
   [execute/getTerminalOutput, execute/awaitTerminal, execute/runInTerminal, read/terminalSelection, read/terminalLastCommand, read/problems, read/readFile, agent, agent/runSubagent, edit/createFile, edit/editFiles, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, todo]
 agents: ['eng-research-sub', 'eng-code-sub', 'eng-writer-sub']
-model: [Claude Opus 4.5 (copilot), Claude Sonnet 4.6 (copilot), GPT-5.4 (copilot)]
+model: [Claude Sonnet 4.6 (copilot), Claude Opus 4.5 (copilot), GPT-5.4 (copilot), Claude Opus 4.6 (1M context)(Internal only) (copilot)]
 user-invocable: true
 ---
 
