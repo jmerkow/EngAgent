@@ -82,8 +82,10 @@ Requires [Node.js](https://nodejs.org/) (18+).
 git clone https://github.com/jmerkow/EngAgent.git
 cd EngAgent
 node cli.mjs build
-node cli.mjs install
+node cli.mjs install --merge-tools --save-resolution
 ```
+
+`--merge-tools` skips the tool-resolution prompt and merges incoming + current tools. `--save-resolution` auto-saves the result to `config.json` so future installs don't prompt. Both flags are recommended for normal use.
 
 Before running `build`, you can optionally customize two things:
 

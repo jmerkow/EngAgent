@@ -223,13 +223,13 @@ function ask(rl, question) {
   return new Promise(resolve => rl.question(question, resolve));
 }
 
-async function promptResolution(changes) {
+async function promptResolution(changes, { mergeTools = false } = {}) {
   const agents = Object.keys(changes);
   const resolutions = {};
 
   const isTTY = process.stdin.isTTY;
-  if (!isTTY) {
-    console.log('  (non-interactive — defaulting to merge)');
+  if (!isTTY || mergeTools) {
+    console.log('  (defaulting to merge)');
     for (const a of agents) resolutions[a] = 'merge';
     return resolutions;
   }
@@ -260,18 +260,21 @@ async function promptResolution(changes) {
   return resolutions;
 }
 
-async function promptSaveConfig(resolutions, changes, config) {
+async function promptSaveConfig(resolutions, changes, config, { saveResolution = false } = {}) {
   const needsSave = Object.entries(resolutions).some(([, r]) => r !== 'incoming');
-  if (!needsSave || !process.stdin.isTTY) return;
+  if (!needsSave) return;
 
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    const answer = (await ask(rl,
-      'Save resolutions to config.json (skip prompts next install)? [y/N] '
-    )).trim().toLowerCase();
-    if (answer !== 'y') return;
-  } finally {
-    rl.close();
+  if (!saveResolution) {
+    if (!process.stdin.isTTY) return;
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    try {
+      const answer = (await ask(rl,
+        'Save resolutions to config.json (skip prompts next install)? [y/N] '
+      )).trim().toLowerCase();
+      if (answer !== 'y') return;
+    } finally {
+      rl.close();
+    }
   }
 
   if (!config.tools) config.tools = {};
@@ -477,7 +480,7 @@ async function build() {
 
 // ── Install ───────────────────────────────────────────────────────────────────
 
-async function install({ workspace = false } = {}) {
+async function install({ workspace = false, mergeTools = false, saveResolution = false } = {}) {
   const config = loadConfig();
   const destDir = workspace ? GITHUB_DIR : getInstallDir(config);
   const label = workspace ? '--workspace' : '--global';
@@ -524,7 +527,7 @@ async function install({ workspace = false } = {}) {
   let resolutions = {};
   if (hasChanges) {
     console.log(formatToolReport(changes));
-    resolutions = await promptResolution(changes);
+    resolutions = await promptResolution(changes, { mergeTools });
   }
 
   // Phase 3: Remove previously-installed files
@@ -572,7 +575,7 @@ async function install({ workspace = false } = {}) {
 
   // Phase 6: Offer to save config
   if (hasChanges) {
-    await promptSaveConfig(resolutions, changes, config);
+    await promptSaveConfig(resolutions, changes, config, { saveResolution });
   }
 
   // Phase 7: Write install manifest (self-tracking so uninstall removes it via the list)
@@ -625,6 +628,8 @@ const command = args[0];
 const flags = {
   workspace: args.includes('--workspace'),
   global: args.includes('--global'),
+  mergeTools: args.includes('--merge-tools'),
+  saveResolution: args.includes('--save-resolution'),
 };
 
 // Default install/uninstall to --global when neither flag is given
@@ -641,8 +646,10 @@ Commands:
   uninstall  Remove previously installed files
 
 Flags:
-  --global     install/uninstall: target ~/.copilot/engagent/ + register VS Code settings (default)
-  --workspace  install/uninstall: target .github/ in the current repo
+  --global           install/uninstall: target ~/.copilot/engagent/ + register VS Code settings (default)
+  --workspace        install/uninstall: target .github/ in the current repo
+  --merge-tools      install: skip prompt, always merge incoming + current tools
+  --save-resolution  install: auto-save tool resolutions to config.json
 `);
   process.exit(command ? 1 : 0);
 }
