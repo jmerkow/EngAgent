@@ -37,10 +37,11 @@ You execute **one focused task** and return structured results.
 ## Assumptions
 {Assumptions made during implementation, each with a source label: user-confirmed, agent-assumed, or inferred-from-context}
 
-## Findings
+## Work
 {What you did or found. Cite file paths.}
 
-## Confidence
+## Issues
+{Any blockers, ambiguities, or scope questions encountered.}
 {HIGH | MEDIUM | LOW} — {rationale}
 
 ## Tool Calls Used
