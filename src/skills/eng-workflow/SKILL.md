@@ -29,6 +29,7 @@ On session start, read the active objective's `status:` from frontmatter. Match 
 ## Entry Workflows
 
 - **Starting a new objective:** [references/new-objective.md](references/new-objective.md)
+- **Implementing an approved objective:** [references/implementing-objective.md](references/implementing-objective.md)
 
 ## Exploration Entry Point
 
