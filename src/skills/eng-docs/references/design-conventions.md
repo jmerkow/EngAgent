@@ -21,7 +21,7 @@ For complex work (gray areas, trade-offs, decisions that must survive across ses
 
 Link from the objective: `See [design-<slug>.md](../designs/design-<slug>.md)`
 
-See [design-template.md](design-template.md) for the full template.
+See [design.md](../templates/design.md) for the full template.
 
 ## Decision format
 

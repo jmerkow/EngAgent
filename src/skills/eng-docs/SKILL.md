@@ -19,11 +19,12 @@ Create `.eng/`, add to parent `.gitignore`, and `git init` inside it. `.eng/` is
 |------|-------------|----------|-------------|
 | Whiteboard | Exploratory work, nothing active | [templates/whiteboard.md](templates/whiteboard.md) | — |
 | Objective | Track a piece of work | [templates/objective.md](templates/objective.md) | [references/objective-conventions.md](references/objective-conventions.md) |
-| Implementation log | Track execution of a coding task or objective | [references/implementation-log-template.md](references/implementation-log-template.md) | — |
+| Implementation log | Track execution of a coding task or objective | [templates/implementation-log.md](templates/implementation-log.md) | — |
 | Design | Lock decisions for complex work | [templates/design.md](templates/design.md) | [references/design-conventions.md](references/design-conventions.md) |
 | Finding | Investigation results | [templates/findings.md](templates/findings.md) | — |
 | Mistake | Detailed mistake write-up | [templates/mistake.md](templates/mistake.md) | [references/mistake-capture.md](references/mistake-capture.md) |
 | Scratch | Working notes, throwaway | (no template) | — |
+| Workstream | Co-located artifacts for one effort | [templates/workstream.md](templates/workstream.md) | See **eng-workstream** skill |
 
 ## Validation
 

@@ -19,7 +19,7 @@ This skill is the single source of truth for the active-workstream contract.
 ## Rules
 
 - Workstreams live under `.eng/workstreams/<slug>/`. No nesting.
-- Every workstream has a `workstream.md` — see [references/workstream-template.md](references/workstream-template.md).
+- Every workstream has a `workstream.md` — see [templates/workstream.md](../eng-docs/templates/workstream.md) in the **eng-docs** skill.
 - Internal structure is free-form. Add files and subdirectories as the work demands.
 - **DO NOT copy other workstreams structure.** Let the shape emerge from the work.
 
