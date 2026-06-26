@@ -15,8 +15,8 @@ I didn't know about the bigger projects in this space until after I'd already st
 What makes EngAgent different:
 
 - **Nothing hidden.** The repo is simple. You can follow exactly what's going on by reading the agents and skills. No layers of orchestration, no magic.
-- **Retro-driven improvement.** After each session, run `/eng-retro` to capture what went wrong. Periodically, run the retro-analysis workflow in `/eng-retro` to surface recurring patterns across sessions. You use those patterns to refine the agent's behavioral rules. It's a manual loop — you decide what changes, but it compounds over time.
-- **Portable across projects.** Install once, use everywhere. No per-repo setup beyond a quick `/eng-docs` scaffold pass.
+- **Retro-driven improvement.** After each session, run `/engflow:retro` to capture what went wrong. Periodically, run the retro-analysis workflow in `/engflow:retro` to surface recurring patterns across sessions. You use those patterns to refine the agent's behavioral rules. It's a manual loop — you decide what changes, but it compounds over time.
+- **Portable across projects.** Install once, use everywhere. No per-repo setup beyond a quick `/engflow:docs` scaffold pass.
 - **You stay in control.** Three main agents (`@eng`, `@eng-plan`, and `@eng-code`) plus a small set of focused skills. No multi-agent swarms or autonomous pipelines. You see what the agent is doing and decide when to proceed.
 - **Not just for code.** I use this for blog posts, sample repos, data science work, ML training runs, and general project tracking. The bigger tools in this space are geared toward production software teams. This works for anything you'd want an AI agent to help you think through and keep track of.
 - **Research discipline.** The agent is told to actually look things up before acting. There are rules for when to stop researching, when to ask, and when it's gone down a rabbit hole too long.
@@ -30,14 +30,16 @@ What makes EngAgent different:
 | **Agents** | [`@eng`](src/agents/eng.agent.md) | Utility work, verification, and whiteboard direct-execute tasks |
 | | [`@eng-plan`](src/agents/eng-plan.agent.md) | Whiteboard exploration, scoping, design, and implementation planning |
 | | [`@eng-code`](src/agents/eng-code.agent.md) | Implementation orchestrator for approved objectives |
-| **Skills** | [`eng-docs`](src/skills/eng-docs/SKILL.md) | `.eng/` schemas, whiteboards, init scaffold workflow, mistake capture |
-| | [`eng-workflow`](src/skills/eng-workflow/SKILL.md) | Phase rules, gates, and objective kickoff guidance |
-| | [`eng-review`](src/skills/eng-review/SKILL.md) | Gate review, verification, and final sign-off |
-| | [`eng-check`](src/skills/eng-check/SKILL.md) | Validation, migration, backfill, and repair for `.eng/` docs |
-| | [`eng-push`](src/skills/eng-push/SKILL.md) | EngDirs init, commit/push, and sync lifecycle |
-| | [`eng-retro`](src/skills/eng-retro/SKILL.md) | Retrospective collection and cross-session analysis |
-| | [`journal`](src/skills/journal/SKILL.md) | Append-only work event log for key milestones and decisions |
-| **Hooks** | PreCompact | Checkpoint before context compaction. Flushes objectives and decisions to disk |
+| **Skills** | [`docs`](src/skills/docs/SKILL.md) | `.eng/` schemas, whiteboards, init scaffold workflow, mistake capture |
+| | [`workflow`](src/skills/workflow/SKILL.md) | Phase rules, gates, and objective kickoff guidance |
+| | [`review`](src/skills/review/SKILL.md) | Gate review, verification, and final sign-off |
+| | [`check`](src/skills/check/SKILL.md) | Validation, migration, backfill, and repair for `.eng/` docs |
+| | [`push`](src/skills/push/SKILL.md) | EngDirs init, commit/push, and sync lifecycle |
+| | [`retro`](src/skills/retro/SKILL.md) | Retrospective collection and cross-session analysis |
+| | [`doctor`](src/skills/doctor/SKILL.md) | Save, compare, and diff installed agent tool/model state |
+| **Legacy source only** | [`journal`](src/skills/journal/SKILL.md) | Retained in `src/`, but not packaged in the plugin |
+| **Legacy** | `cli.mjs build/install` | Older local build/install pipeline, retained for compatibility |
+| **Rules** | [`src/instructions/`](src/instructions/) | `.eng/` editing rule loaded via the plugin `rules` field |
 | **Instructions** | [`preferences-coding`](preferences-coding.example.instructions.md) | Code quality, naming, and style rules |
 | | [`preferences-universal`](preferences-universal.example.instructions.md) | Workflow, output, git, and collaboration conventions |
 
@@ -51,7 +53,7 @@ There are a few layers, but they're all just markdown files:
 
 - **`preferences-coding.instructions.md`** and **`preferences-universal.instructions.md`** set coding style, naming, git conventions. Applies everywhere. These ship as defaults you can customize (see below).
 - **`eng.agent.md`**, **`eng-plan.agent.md`**, and **`eng-code.agent.md`** define the main behaviors: whiteboard exploration, planning, implementation, verification, and utility work.
-- **Skills** (`eng-docs`, `eng-workflow`, `eng-review`, `eng-retro`, and others) provide the domain procedures: schemas, gate logic, review workflows, and maintenance tasks.
+- **Skills** (`docs`, `workflow`, `review`, `retro`, and others) provide the domain procedures: schemas, gate logic, review workflows, and maintenance tasks.
 - Then there's the **per-repo stuff** — `.eng/whiteboard/`, `.eng/objectives/`, `.eng/findings/`, `.eng/retros/`. This is where the agent reads what's been done and figures out what's next.
 
 > [!NOTE]
@@ -72,22 +74,31 @@ There are a few layers, but they're all just markdown files:
     └── archive/        # completed or superseded docs
 ```
 
-Use `/eng-docs` and follow the init scaffold workflow to set this up in any project. See [AGENTS.md](AGENTS.md) for the full inventory of agents, skills, hooks, and instructions.
+Use `/engflow:docs` and follow the init scaffold workflow to set this up in any project. See [AGENTS.md](AGENTS.md) for the full inventory of agents, skills, hooks, and instructions.
 
 ## Install
 
-Requires [Node.js](https://nodejs.org/) (18+).
+Install from the GitHub repo:
 
 ```bash
-git clone https://github.com/jmerkow/EngAgent.git
-cd EngAgent
-node cli.mjs build
-node cli.mjs install --merge-tools --save-resolution
+copilot plugin install jmerkow/EngAgent
 ```
 
-`--merge-tools` skips the tool-resolution prompt and merges incoming + current tools. `--save-resolution` auto-saves the result to `config.json` so future installs don't prompt. Both flags are recommended for normal use.
+The root `plugin.json` is the install surface. It loads agents from `src/agents/`, skills from `src/skills/`, and rules from `src/instructions/`.
 
-Before running `build`, you can optionally customize two things:
+For local development from a clone, point VS Code at the repo root via workspace settings:
+
+```jsonc
+// .vscode/settings.json
+{
+  "chat.pluginLocations": { "/absolute/path/to/EngAgent": true }
+}
+```
+
+> [!NOTE]
+> The CLI can also install from an absolute local path (`copilot plugin install /abs/path/to/EngAgent`), but direct local/URL installs are deprecated in favor of `owner/repo` and `plugin@marketplace`. The relative form `copilot plugin install .` is not supported.
+
+Before using the legacy CLI pipeline, you can optionally customize two things:
 
 **Tools** — Copy `config.example.json` to `config.json` and add MCP server tools or other tools under the `tools` key. Use `*` for all agents or a specific agent name:
 
@@ -112,9 +123,13 @@ cp preferences-universal.example.instructions.md preferences-universal.instructi
 
 Your copies are gitignored and won't be overwritten by `git pull`. The build uses your version when present, otherwise falls back to the shipped default.
 
-You can also add tools at runtime. When chatting with `@eng` or `@eng-plan`, click the **tools** icon in the chat input, toggle on any MCP servers or built-in tools you want, and save. This doesn't require a rebuild.
+You can also add tools at runtime. When chatting with `@eng` or `@eng-plan`, click the **tools** icon in the chat input, toggle on any MCP servers or built-in tools you want, and save. This does not require a rebuild.
 
-**What the commands do:**
+## Legacy CLI
+
+`node cli.mjs build` and `node cli.mjs install` are legacy compatibility paths. They still support config-driven tool injection and the older `eng-agent-build/` output, but they are no longer the canonical install route.
+
+**What the legacy commands do:**
 
 1. `build` copies `src/` into `.github/`, injecting any configured tools into agent files
 2. `install` symlinks `.github/` to `~/.copilot/engagent/` and registers four VS Code settings:
@@ -142,11 +157,10 @@ VS Code discovers agents, skills, and instructions from these paths in every wor
 ### Update
 
 ```bash
-git pull
-node cli.mjs build
+copilot plugin install jmerkow/EngAgent
 ```
 
-Symlinks mean no reinstall. The build step is enough.
+If you still use the legacy CLI install path, rerun `node cli.mjs build` after pulling changes.
 
 ### Uninstall
 
@@ -154,27 +168,31 @@ Symlinks mean no reinstall. The build step is enough.
 node cli.mjs uninstall
 ```
 
-Removes the symlink and VS Code settings entries.
+For the legacy CLI install path, this removes the symlink and VS Code settings entries.
 
 ## Quick Start
 
 Once installed, in any VS Code workspace:
 
-1. **`/eng-docs`:** scaffold `.eng/` in your project and start from a whiteboard
+1. **`/engflow:docs`:** scaffold `.eng/` in your project and start from a whiteboard
 2. **`@eng-plan`:** explore on the whiteboard, then scope, design, and plan tracked work
-3. **`/eng-review`:** review gates, verify deliverables, and do final sign-off
+3. **`/engflow:review`:** review gates, verify deliverables, and do final sign-off
 4. **`@eng-code`:** implement approved objectives
-5. **`/eng-retro`:** collect observations and analyze patterns across sessions
+5. **`/engflow:retro`:** collect observations and analyze patterns across sessions
 
 For ongoing work, `@eng`, `@eng-plan`, and `@eng-code` read `.eng/objectives/` and `.eng/whiteboard/` to pick up where they left off.
 
-## Hooks (Experimental)
+## Doctor
 
-The PreCompact hook fires before VS Code compacts the conversation context. It reminds the agent to flush in-progress state to `.eng/objectives/` so work survives compaction.
+Phase 1 ships no hooks. The new bundled health surface is `/engflow:doctor`, which documents the Python doctor script for saving and comparing installed agent tool/model state.
 
-Hooks are installed automatically by the init scaffold workflow in `/eng-docs` and live in `.github/hooks/hooks.json`. To disable, delete the file or remove the hook entry. See [VS Code hooks documentation](https://code.visualstudio.com/docs/copilot/chat/chat-hooks) for format details.
+```bash
+uv run src/skills/doctor/scripts/agent-states.py save
+uv run src/skills/doctor/scripts/agent-states.py check
+uv run src/skills/doctor/scripts/agent-states.py diff
+```
 
-Additional hooks (pre-flight checks, terminal output handling, session start) are planned but not yet validated.
+State is written to `~/.engflow/agent-states.json`. `--all` is accepted for forward compatibility, but Phase 1 still checks agents only.
 
 ## Roadmap
 
@@ -195,7 +213,7 @@ Additional hooks (pre-flight checks, terminal output handling, session start) ar
 
 This is a solo project in active development. If you find it useful or have ideas, open an issue. Pull requests welcome for bug fixes; for new features, open an issue first to discuss.
 
-The retro system is how this project evolves. Run `/eng-retro` after your sessions, use its analysis workflow to look for patterns, and if you find improvements to the agents or skills — that's a contribution. Fork, run the loop on your own projects, and send back what works.
+The retro system is how this project evolves. Run `/engflow:retro` after your sessions, use its analysis workflow to look for patterns, and if you find improvements to the agents or skills — that's a contribution. Fork, run the loop on your own projects, and send back what works.
 
 ## License
 

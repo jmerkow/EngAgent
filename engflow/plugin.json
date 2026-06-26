@@ -1,0 +1,20 @@
+{
+  "name": "engflow",
+  "description": "Engineering workflow agents and skills for GitHub Copilot.",
+  "version": "0.4.0",
+  "agents": "./agents/",
+  "rules": [
+    "./instructions/"
+  ],
+  "skills": [
+    "./skills/check/",
+    "./skills/docs/",
+    "./skills/orchestration/",
+    "./skills/push/",
+    "./skills/retro/",
+    "./skills/review/",
+    "./skills/workflow/",
+    "./skills/workstream/",
+    "src/skills/doctor/"
+  ]
+}

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Pre-commit hook for .eng/ EngDirs branches.
+# Validates file naming conventions and frontmatter presence.
+# Bypass with: git commit --no-verify
+
+set -euo pipefail
+
+errors=()
+
+# Only check staged files (added or modified)
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+
+  dir="$(dirname "$file")"
+  base="$(basename "$file")"
+
+  # Skip files not in validated directories
+  case "$dir" in
+    objectives|findings|retros) ;;
+    *) continue ;;
+  esac
+
+  # Check file naming conventions
+  case "$dir" in
+    objectives)
+      if [[ ! "$base" =~ ^objective-.*\.md$ ]]; then
+        errors+=("$file: must match objective-*.md")
+      fi
+      ;;
+    findings)
+      if [[ ! "$base" =~ ^finding-.*\.md$ ]]; then
+        errors+=("$file: must match finding-*.md")
+      fi
+      ;;
+    retros)
+      if [[ ! "$base" =~ ^retro-.*\.md$ ]]; then
+        errors+=("$file: must match retro-*.md")
+      fi
+      ;;
+  esac
+
+  # Check frontmatter exists (file starts with ---)
+  if [[ -f "$file" ]]; then
+    first_line="$(head -1 "$file")"
+    if [[ "$first_line" != "---" ]]; then
+      errors+=("$file: missing YAML frontmatter (must start with ---)")
+    fi
+  fi
+
+done < <(git diff --cached --name-only --diff-filter=AM)
+
+if [[ ${#errors[@]} -gt 0 ]]; then
+  echo "push pre-commit: validation failed"
+  echo ""
+  for err in "${errors[@]}"; do
+    echo "  ✗ $err"
+  done
+  echo ""
+  echo "Fix the issues above, or bypass with: git commit --no-verify"
+  exit 1
+fi

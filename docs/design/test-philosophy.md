@@ -24,7 +24,7 @@ The example below shows what a content checklist looks like. Each file being cre
 
 Example:
 ```
-eng-docs SKILL.md:
+docs SKILL.md:
   Line budget: ≤ 120
   Content:
     - [ ] Directory structure section
@@ -59,7 +59,7 @@ Write 3-4 workflow scenarios and have a subagent trace through each one manually
 Example scenarios:
 - "You're eng-plan. The objective has `status: draft`. User wants to start scoping. What do you load? What do you do?"
 - "You're eng-code. The objective has `status: approved`. What do you check before starting implementation? What do you do next?"
-- "You're eng using `/eng-review` verification mode. The objective has `status: needs-verify`. How do you verify?"
+- "You're eng using `/engflow:review` verification mode. The objective has `status: needs-verify`. How do you verify?"
 
 This is the closest we get to simulating context loading without running a real session. It tests the system end-to-end — not individual files, but how they compose.
 

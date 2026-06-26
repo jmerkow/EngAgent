@@ -4,8 +4,8 @@ How engineering work moves through the system — from exploratory whiteboard no
 
 This guide covers the workflow phases, agents, skills, and handoffs. For other topics see:
 - [Testing & Verification](design/test-philosophy.md)
-- File types and schemas — see `eng-docs`
-- `.eng/` setup — use `/eng-docs` and follow the init scaffold workflow
+- File types and schemas — see the `docs` skill
+- `.eng/` setup — use `/engflow:docs` and follow the init scaffold workflow
 
 ## The Flow
 
@@ -67,7 +67,7 @@ For simple work, the design may live inline in the objective's `## Design` secti
 Once the design is locked, write the concrete steps to get from current state to designed state. Tasks are checkboxes with done criteria and references to the decisions they implement.
 
 ```markdown
-- [ ] **T1: Create eng-workflow skill** [implements: D7, D8]
+- [ ] **T1: Create workflow skill** [implements: D7, D8]
   - Done: File exists and contains phase table and gate checklists
 - [ ] **T2: Rewrite eng.agent.md** [implements: D7] (after: T1)
   - Done: No inline gate definitions remain
@@ -102,13 +102,13 @@ Once the gate passes, the objective moves from `in-progress` to `needs-verify`.
 
 ### 4. Verification and Sign-Off
 
-**Agent:** `eng` with `/eng-review`
+**Agent:** `eng` with `/engflow:review`
 
 Verification checks deliverables against two things:
 - the **design decisions** (`Test:` fields)
 - the **success criteria** from scoping
 
-Use `/eng-review` in two modes:
+Use `/engflow:review` in two modes:
 - **Verification mode** — runs decision tests and success-criteria checks, and sets `needs-verify` if appropriate
 - **Final sign-off mode** — closes the objective after verification passes and the user confirms
 
@@ -151,12 +151,13 @@ Skills are invocable as slash commands and now replace the old workflow prompts.
 
 | Command | What it does |
 |---|---|
-| `/eng-docs` | `.eng/` schemas, init scaffold workflow, whiteboards, mistake capture |
-| `/eng-workflow` | Phase rules, gates, status lifecycle, objective kickoff |
-| `/eng-review` | Gate review, deliverable verification, final sign-off |
-| `/eng-check` | Validation, migration, backfill, documentation repair |
-| `/eng-retro` | Session retrospectives and retro-pattern analysis |
-| `/eng-push` | EngDirs init, commit, push, and pre-commit guidance |
+| `/engflow:docs` | `.eng/` schemas, init scaffold workflow, whiteboards, mistake capture |
+| `/engflow:workflow` | Phase rules, gates, status lifecycle, objective kickoff |
+| `/engflow:review` | Gate review, deliverable verification, final sign-off |
+| `/engflow:check` | Validation, migration, backfill, documentation repair |
+| `/engflow:retro` | Session retrospectives and retro-pattern analysis |
+| `/engflow:push` | EngDirs init, commit, push, and pre-commit guidance |
+| `/engflow:doctor` | Save, compare, and diff installed agent tool/model state |
 
 ## Handoffs
 
@@ -178,8 +179,8 @@ These are shortcuts, not requirements. You can always switch agents manually or 
 2. If there is no active objective, start with a whiteboard in `.eng/whiteboard/`.
 3. Explore the problem, capture threads and open questions, and only create an objective when the user is ready for tracked work.
 4. Scope the objective (`status: draft`) and define success criteria.
-5. Use `/eng-review` in gate-review mode to advance from scoping to planning.
-6. Lock the design and implementation plan, then use `/eng-review` again to advance to `approved`.
+5. Use `/engflow:review` in gate-review mode to advance from scoping to planning.
+6. Lock the design and implementation plan, then use `/engflow:review` again to advance to `approved`.
 7. Switch to `@eng-code`. It picks up the approved objective and runs implementation.
-8. Use `/eng-review` in verification mode to check deliverables.
-9. Use `/eng-review` in final sign-off mode to close the objective once verification passes.
+8. Use `/engflow:review` in verification mode to check deliverables.
+9. Use `/engflow:review` in final sign-off mode to close the objective once verification passes.

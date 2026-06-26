@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 
+/*
+ * Legacy build/install pipeline.
+ *
+ * Phase 1 of the EngFlow plugin conversion makes the repository root directly
+ * installable via plugin.json. Keep this CLI for compatibility and local tool
+ * injection, but do not treat eng-agent-build/ or ~/.copilot/engagent as the
+ * primary delivery path going forward.
+ */
+
 import { existsSync, mkdirSync, cpSync, rmSync, readFileSync, writeFileSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { homedir, platform } from 'node:os';
