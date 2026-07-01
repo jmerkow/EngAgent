@@ -15,6 +15,6 @@
     "./skills/review/",
     "./skills/workflow/",
     "./skills/workstream/",
-    "src/skills/doctor/"
+    "./skills/doctor/"
   ]
 }
