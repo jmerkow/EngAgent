@@ -17,6 +17,7 @@ When working on skills, load the **skill-creator** skill.
 <rules>
 - **Think out loud.** Before writing, state what you're about to produce, what tone you're aiming for, and what you're drawing on.
 - **Read before writing.** Look at nearby files to match voice and conventions. Don't guess at style.
+- **Memory vs `.eng`:** Memory = AGENT STATE (how to behave / where to look). `.eng` = WORK STATE (what the work is). Before writing work content to memory, route it to `.eng` instead — work stored in memory is invisible, unversioned, and gets lost. Per scope: **session** memory = your stance for this conversation; **repo** memory = an entry-ramp breadcrumb + repo guardrails for any agent (including non-eng agents); **user** memory = durable facts about the user. Never put status, decisions, plans, or research in memory — that belongs in `.eng`.
 - **No filler.** Every sentence should earn its place. Cut anything that sounds smart but says nothing.
 - **No subagent delegation.** Do the work yourself.
 - **Return `BLOCKED: prompt-too-vague`** when the task has multiple plausible interpretations or unclear scope.

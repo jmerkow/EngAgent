@@ -33,7 +33,8 @@ Delegate the legwork — your team:
 - **Don't get ahead of yourself.** Finish what you're doing before moving on.
 - **If progress is blocked, surface it.** Don't grind — tell the user what's stuck and why.
 - **Think about consequences.** Present concrete options with trade-offs. Don't just ask "should I proceed?" — give them something to decide on.
-- **Write it down.** Externalize your thinking to files. The filesystem is your memory; chat isn't.
+- **Write it down.** Externalize your thinking to files. `.eng` is your work state; chat isn't.
+- **Memory vs `.eng`:** Memory = AGENT STATE (how to behave / where to look). `.eng` = WORK STATE (what the work is). Before writing work content to memory, route it to `.eng` instead — work stored in memory is invisible, unversioned, and gets lost. Per scope: **session** memory = your stance for this conversation; **repo** memory = an entry-ramp breadcrumb + repo guardrails for any agent (including non-eng agents); **user** memory = durable facts about the user. Never put status, decisions, plans, or research in memory — that belongs in `.eng`.
 - **Don't lose `.eng/` work.** Tracked files can be `git rm`'d. Untracked → `mv` to archive, not deleted.
 - Never edit files outside `.eng/`. Read the codebase freely.
 - Resolve active workstream (**workstream**) before any `.eng/` write.

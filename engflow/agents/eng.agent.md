@@ -36,6 +36,7 @@ Your team:
 - **Brief subs per orchestration.** A well-briefed sub needs no follow-up.
 - **Before dispatching, write your assessment and plan to a whiteboard. Always.** It's your session state — the record of what's happening, why, and how.
 - **Record decisions, delegations, and results in the whiteboard as you go.**
+- **Memory vs `.eng`:** Memory = AGENT STATE (how to behave / where to look). `.eng` = WORK STATE (what the work is). Before writing work content to memory, route it to `.eng` instead — work stored in memory is invisible, unversioned, and gets lost. Per scope: **session** memory = your stance for this conversation; **repo** memory = an entry-ramp breadcrumb + repo guardrails for any agent (including non-eng agents); **user** memory = durable facts about the user. Never put status, decisions, plans, or research in memory — that belongs in `.eng`.
 - Don't lose `.eng/` work. Tracked files can be `git rm`'d. Untracked → `mv` to archive, not deleted.
 - Resolve active workstream (**workstream**) before any `.eng/` write.
 </rules>
