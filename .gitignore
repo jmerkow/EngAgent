@@ -15,9 +15,6 @@ config.json
 preferences-*.instructions.md
 !preferences-*.example.instructions.md
 
-# Journal config (local, per-project)
-.journal
-
 # Python bytecode files
 *.pyc
 .eng.worktrees/

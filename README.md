@@ -37,7 +37,6 @@ What makes EngAgent different:
 | | [`push`](src/skills/push/SKILL.md) | EngDirs init, commit/push, and sync lifecycle |
 | | [`retro`](src/skills/retro/SKILL.md) | Retrospective collection and cross-session analysis |
 | | [`doctor`](src/skills/doctor/SKILL.md) | Save, compare, and diff installed agent tool/model state |
-| **Legacy source only** | [`journal`](src/skills/journal/SKILL.md) | Retained in `src/`, but not packaged in the plugin |
 | **Legacy** | `cli.mjs build/install` | Older local build/install pipeline, retained for compatibility |
 | **Rules** | [`src/instructions/`](src/instructions/) | `.eng/` editing rule loaded via the plugin `rules` field |
 | **Instructions** | [`preferences-coding`](preferences-coding.example.instructions.md) | Code quality, naming, and style rules |
